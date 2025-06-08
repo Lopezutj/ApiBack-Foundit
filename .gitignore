@@ -1,0 +1,38 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Entorno
+.env
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Sistema operativo
+.DS_Store       # macOS
+Thumbs.db       # Windows
+
+# IDEs y editores
+.vscode/
+.idea/
+
+# Builds (si en un futuro compilas o usas TypeScript)
+dist/
+build/
+
+# Archivos temporales
+*.swp
+*.swo
+*.bak
+*.tmp
+*.temp
+
+# MongoDB dump/backups (si los haces localmente)
+dump/
+
+# Otros
+coverage/
