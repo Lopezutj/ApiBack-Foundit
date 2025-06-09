@@ -1,10 +1,12 @@
 const express = require('express'); // Importar el framework express
+const env = require('dotenv'); // Importar dotenv para manejar variables de entorno
+env.config(); // Cargar las variables de entorno desde el archivo .env
 const cors =require('cors'); // Importar el middleware cors
 const morgan = require('morgan'); // Importar el middleware morgan para logging
+const bodyParser = require('body-parser'); // Importar body-parser para manejar el cuerpo de las peticiones en JSON
 
 // Importar las rutas
-const pruebaRoute = require('./routes/prueba'); // Importar la ruta de prueba
-const userRoute = require('./routes/users'); // Importar la ruta de usuarios
+const userRoute = require('./routes/usersRoute'); // Importar la ruta de usuarios
 
 
 //inicializar la app
@@ -14,11 +16,11 @@ var app = express();
 app.use(cors()); //habilitar CORS para todas las rutas
 app.use(morgan('dev')); // Usar morgan para logging de peticiones HTTP
 app.use(express.json()); //soportar JSON en las peticiones
-app.use(express.urlencoded({ extended: false })); //soportar datos codificados en URL
+app.use(bodyParser.json()); //soportar datos en formato JSON
+app.use(express.urlencoded({ extended: true })); //soportar datos codificados en URL
 
 
 // Configurar las rutas
-app.use('/',pruebaRoute);
 app.use('/users',userRoute); // Ruta para usuarios
 
 
