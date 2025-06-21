@@ -6,6 +6,7 @@ router.post('/', UserController.create); // Ruta para crear un usuario
 router.get('/', UserController.getAllUsers); // Ruta para obtener todos los usuarios
 router.get('/:id', UserController.getUserbyId); // Ruta para obtener un usuario por ID
 router.put('/:id', UserController.updateUser); // Ruta para actualizar un usuario por ID
-//router.delete('/:id', UserController.deleteUser); // Ruta para eliminar un usuario por ID
+router.delete('/:id', UserController.deleteUser); // Ruta para eliminar un usuario por ID
+router.post('/login', UserController.login); // Ruta para iniciar sesión
 
 module.exports = router;

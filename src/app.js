@@ -1,44 +1,42 @@
 const express = require('express'); // Importar el framework express
-const env = require('dotenv'); // Importar dotenv para manejar variables de entorno
-env.config(); // Cargar las variables de entorno desde el archivo .env
-const cors =require('cors'); // Importar el middleware cors
-const morgan = require('morgan'); // Importar el middleware morgan para logging
-const bodyParser = require('body-parser'); // Importar body-parser para manejar el cuerpo de las peticiones en JSON
+const env = require('dotenv');// Importar dotenv para manejar variables de entorno
+env.config();
+const cors = require('cors'); // Importar cors para manejar CORS
+const morgan = require('morgan');  // Importar morgan para registrar las solicitudes HTTP
+const mongoose = require('mongoose'); // Importar mongoose para manejar la base de datos MongoDB
 
+// Conectar a la base de datos MongoDB
+const connectDB = require('./config/db');
+connectDB();
+  
 // Importar las rutas
-const userRoute = require('./routes/usersRoute'); // Importar la ruta de usuarios
+const userRoute = require('./routes/usersRoute');
 
-
-//inicializar la app
 var app = express();
 
-//Midlewares
-app.use(cors()); //habilitar CORS para todas las rutas
-app.use(morgan('dev')); // Usar morgan para logging de peticiones HTTP
-app.use(express.json()); //soportar JSON en las peticiones
-app.use(bodyParser.json()); //soportar datos en formato JSON
-app.use(express.urlencoded({ extended: true })); //soportar datos codificados en URL
-
-
-// Configurar las rutas
-app.use('/users',userRoute); // Ruta para usuarios
-
-
-//configuarcion de cors
+// Middlewares de la aplicación de Express
 app.use(cors({
-  origin : '*', // * Permitir todas las solicitudes de origen //'http://localhost:4200', -- URL del frontend angular
-  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE'], // Métodos permitidos
-  preflightContinue: false, // No continuar con la solicitud siguiente
-  optionsSuccessStatus: 204 // Código de estado para respuestas exitosas de preflight
+  origin: '*',
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
-//Manejo de rutas no encontradas (404)
-app.use((req,res,next)=>{
-  res.status(404).json({error: 'Ruta no encontrada'});
+
+app.use(morgan('dev')); // Registrar las solicitudes HTTP en la consola
+app.use(express.json()); // Analizar el cuerpo de las solicitudes JSON
+app.use(express.urlencoded({ extended: true })); // Analizar el cuerpo de las solicitudes URL-encoded
+
+// Configurar las rutas
+app.use('/users', userRoute);
+
+// Manejo de rutas no encontradas (404)
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
-//Manejo de errores Genrales
-app.use((err,req,res,next)=>{
+// Manejo de errores generales
+app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
     error: 'Error interno del servidor',

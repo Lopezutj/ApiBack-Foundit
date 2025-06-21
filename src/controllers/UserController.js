@@ -1,62 +1,97 @@
-const UserModel = require('../models/UserModel'); //importar el modelo de usuario
+const UserModel = require('../models/UserModel'); // Importar el modelo de usuario
+const bcrypt = require('bcrypt'); // Importar bcrypt para hashear contraseñas
 
-class UserController{
+class UserController {
+    constructor() {}
 
-    //constructor para inicializar el controlador
-    constructor(){}
-
-    //CRUD DE USUARIOS
-
-    async create(req,res){
+    // Crear usuario
+    async create(req, res) {
         try {
-            const createUser = await UserModel.create(req.body); //crear un nuevo usuario usando el modelo UserModel
-            res.status(201).json({mensaje: "Usuario creado",usuario: createUser}); //enviar una respuesta con el usuario creado
+            console.log("Contraseña recibida: ",req.body.password);
+            const createUser = await UserModel.create(req.body);
+            res.status(201).json({ mensaje: "Usuario creado", 
+                usuario: createUser });
         } catch (err) {
-            res.status(500).json({error: "Error al crear el usuario", message: err.message}); //enviar un error si ocurre
+            res.status(500).json({ error: "Error al crear el usuario", message: err.message });
         }
     }
 
-    async getAllUsers(req,res){
+    // Iniciar sesión
+    async login(req,res){
         try {
-            const users = await UserModel.getAll(); //obtener todos los usuarios usando el modelo UserModel
-            if(users.length === 0){
-                return res.status(404).json({error: "No hay usuarios registrados"}); //enviar un error si no hay usuarios
+            const {email,password} = req.body;
+            
+            const user = await UserModel.findOne({ email: email }); // Buscar el usuario por email
+            if (!user) {
+                return res.status(404).json({ error: "Usuario no encontrado" });
             }
-            res.status(200).json({mensaje: "Usuarios encontrados", usuarios: users}); //enviar una respuesta con los usuarios encontrados
+            //verificar contraseña
+            const isvalidPassword = await bcrypt.compare(password, user.password); // Comparar la contraseña
+            if (!isvalidPassword) {
+                return res.status(401).json({ error: "Contraseña incorrecta" });
+            }
+            res.status(200).json({ mensaje: "Inicio de sesión exitoso"});
+
+        }catch (err) {
+            res.status(500).json({ error: "Error al iniciar sesión", message: err.message });
+        }
+
+    }
+    // Obtener todos los usuarios
+    async getAllUsers(req, res) {
+        try {
+            const users = await UserModel.find(); // Usar find() de Mongoose
+            if (users.length === 0) {
+                return res.status(404).json({ error: "No hay usuarios registrados" });
+            }
+            res.status(200).json({ mensaje: "Usuarios encontrados", usuarios: users });
         } catch (err) {
-            res.status(500).json({error: "Error al obtener los usuarios", message: err.message}); //enviar un error si ocurre
-            
+            res.status(500).json({ error: "Error al obtener los usuarios", message: err.message });
         }
     }
 
-    async getUserbyId(req,res){
+    // Obtener usuario por ID
+    async getUserbyId(req, res) {
         try {
-            const userId = await UserModel.findById(req.params.id); //buscar un usuario por su ID usando el modelo UserModel
-            if(!userId){
-                return res.status(404).json({error: "Usuario no encontrado"}); //enviar un error si no se encuentra el usuario
+            const userId = await UserModel.findById(req.params.id); // Usar findById() de Mongoose
+            if (!userId) {
+                return res.status(404).json({ error: "Usuario no encontrado" });
             }
-            res.status(200).json({mensaje: "Usuario encontrado", usuario: userId}); //enviar una respuesta con el usuario encontrado
+            res.status(200).json({ mensaje: "Usuario encontrado", usuario: userId });
         } catch (error) {
-            res.status(500).json({error: "Error al obtener el usuario", message: error.message}); //enviar un error si ocurre
+            res.status(500).json({ error: "Error al obtener el usuario", message: error.message });
         }
     }
 
-    async updateUser(req,res){
+    // Actualizar usuario
+    async updateUser(req, res) {
         try {
-            res.status(200).json({mensaje: "Usuario actualizado"}); //enviar una respuesta con el usuario actualizado
+            const updatedUser = await UserModel.findByIdAndUpdate(
+                req.params.id,
+                req.body,
+                { new: true, runValidators: true }
+            );
+            if (!updatedUser) {
+                return res.status(404).json({ error: "Usuario no encontrado" });
+            }
+            res.status(200).json({ mensaje: "Usuario actualizado", usuario: updatedUser });
         } catch (error) {
-            res.status(500).json({error: "Error al actualizar el usuario", message: error.message}); //enviar un error si ocurre
+            res.status(500).json({ error: "Error al actualizar el usuario", message: error.message });
         }
     }
 
-    async deleteUser(req,res){
+    // Eliminar usuario
+    async deleteUser(req, res) {
         try {
-            
-            res.status(200).json({mensaje: "Usuario eliminado"}); //enviar una respuesta con el usuario eliminado
+            const deletedUser = await UserModel.findByIdAndDelete(req.params.id);
+            if (!deletedUser) {
+                return res.status(404).json({ error: "Usuario no encontrado" });
+            }
+            res.status(200).json({ mensaje: "Usuario eliminado" });
         } catch (error) {
-            res.status(500).json({error: "Error al eliminar el usuario", message: error.message}); //enviar un error si ocurre
+            res.status(500).json({ error: "Error al eliminar el usuario", message: error.message });
         }
     }
 }
 
-module.exports = new UserController(); //exportar una instancia del controlador de usuario
+module.exports = new UserController();

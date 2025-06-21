@@ -1,29 +1,34 @@
-const { model } = require('mongoose');
-const dbClient = require('../config/dbClient'); // importar el cliente de la base de datos
+const mongoose = require('mongoose'); // importar mongoose para definir el esquema del modelo
 const bcrypt = require('bcrypt'); // importar bcrypt para hashear contraseñas
 
-class UserModel{
-    
-    async create(user){
-        const coleccionUsers = dbClient.db.collection('users'); //acceder a la colección de usuarios en la base de datos
-        //hashear la contraseña del usuario antes de guardarlo
-        if (user.password) {
-            user.password = await bcrypt.hash(user.password, 10); // hashear la contraseña con un salt de 10 rondas
-        }
+const UsuarioSchema = new mongoose.Schema({
+    nombre: {
+        type: String,
+        required: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    password: {
+        type: String,
+        required: true,
+    },
+    tipo: { 
+        type: String,
+        enum: ['admin', 'operador'],
+        required: true 
+    },
+});
 
-        /* const result = await coleccionUsers.insertOne(user); //insertar un nuevo usuario en la colección */
-        return await coleccionUsers.insertOne(user); // insertar un nuevo usuario en la colección y devolver el resultado
+//Milware para hashear la contraseña antes de guardar el usuario
+UsuarioSchema.pre('save', async function(next) {
+    if (this.isModified('password')) {
+        const salt = await bcrypt.genSalt(10); // Generar un salt
+        this.password = await bcrypt.hash(this.password, salt); // Hashear la contraseña
     }
+    next(); // Continuar con el siguiente middleware
+});
 
-    async getAll(){
-        const coleccionUsers = dbClient.db.collection('users'); // acceder a la colección de usuarios en la base de datos
-        return await coleccionUsers.find().toArray(); // obtener todos los usuarios de la colección y devolverlos como un array
-    }
-
-    async findById(id){
-        const coleccionUsers = dbClient.db.collection('users'); // acceder a la colección de usuarios en la base de datos
-        return await coleccionUsers.findOne({ _id: id }); // buscar un usuario por su ID y devolverlo
-    }
-}
-
-module.exports = new UserModel(); // exportar una instancia del modelo de usuario
+module.exports = mongoose.model('Usuario', UsuarioSchema); // Exportar el modelo de usuario
