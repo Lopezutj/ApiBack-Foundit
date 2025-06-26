@@ -6,12 +6,24 @@ const morgan = require('morgan');  // Importar morgan para registrar las solicit
 const mongoose = require('mongoose'); // Importar mongoose para manejar la base de datos MongoDB
 
 // Conectar a la base de datos MongoDB
+
 const connectDB = require('./config/db');
 connectDB();
-  
-// Importar las rutas
-const userRoute = require('./routes/usersRoute');
+mongoose.connect('mongodb://127.0.0.1:27017/nosqlfoundit');  
+ 
+//imporatacion de modelos 
+require('.models/Almacen');//
+require('./models/Material');
+require('./models/Dispositivo');
+require('./models/Estante');
 
+
+// Importar las rutas
+  const userRoute = require('./routes/usersRoute');
+  const almacenesRoute = require('./routes/almacenesRoute');
+  const materialesRoute = require('./routes/materialesRoute');
+  const dispositivosRoute = require('./routes/dispositivosRoute');
+  const estantesRoute = require('./routes/estantesRoute');
 var app = express();
 
 // Middlewares de la aplicación de Express
@@ -29,6 +41,10 @@ app.use(express.urlencoded({ extended: true })); // Analizar el cuerpo de las so
 
 // Configurar las rutas
 app.use('/users', userRoute);
+app.use('/almacenes',almacenesRoute);
+app.use('/materiales',materialesRoute);
+app.use('/dispositivos',dispositivosRoute);
+app.use('/estantes',estantesRoute);
 
 // Manejo de rutas no encontradas (404)
 app.use((req, res, next) => {
