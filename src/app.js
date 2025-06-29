@@ -10,6 +10,8 @@ const connectDB = require('./config/db');
 connectDB();
   
 // Importar las rutas
+const authRoute = require('./routes/Auth/AuthRoute');
+const autentificaJWT = require('../middleware/auntentificaJWT'); // Middleware para autenticar JWT
 const userRoute = require('./routes/usersRoute');
 const deviceRoute = require('./routes/dispositivosRoute');
 const materialRoute = require('./routes/materialesRoute');
@@ -32,6 +34,7 @@ app.use(express.json()); // Analizar el cuerpo de las solicitudes JSON
 app.use(express.urlencoded({ extended: true })); // Analizar el cuerpo de las solicitudes URL-encoded
 
 // Configurar las rutas
+app.use('/login', authRoute); // Ruta para autenticación
 app.use('/users', userRoute);
 app.use('/dispositivos', deviceRoute);
 app.use('/materiales', materialRoute);

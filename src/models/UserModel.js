@@ -1,5 +1,8 @@
 const mongoose = require('mongoose'); // importar mongoose para definir el esquema del modelo
 const bcrypt = require('bcrypt'); // importar bcrypt para hashear contraseñas
+const jwt = require('jsonwebtoken'); // importar jsonwebtoken para generar tokens de autenticación
+const dotenv = require('dotenv'); // importar dotenv para manejar variables de entorno
+dotenv.config(); // cargar las variables de entorno desde el archivo .env
 
 const UsuarioSchema = new mongoose.Schema({
     nombre: {
@@ -30,5 +33,16 @@ UsuarioSchema.pre('save', async function(next) {
     }
     next(); // Continuar con el siguiente middleware
 });
+
+UsuarioSchema.methods.generarAuthToken = function() { // Método para generar un token de autenticación
+    //lógica para generar un token JWT
+    return jwt.sign({
+        nombre: this.nombre, // datos a enviar en el token
+        email: this.email, // datos a enviar en el token
+        tipo: this.tipo, // datos a enviar en el token
+    },process.env.JWT_SECRET, { // usar la clave secreta del entorno
+        expiresIn: '1h', // el token expirará en 1 hora
+    });
+}
 
 module.exports = mongoose.model('Usuario', UsuarioSchema); // Exportar el modelo de usuario
