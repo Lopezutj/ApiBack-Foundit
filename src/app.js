@@ -11,6 +11,10 @@ connectDB();
   
 // Importar las rutas
 const userRoute = require('./routes/usersRoute');
+const deviceRoute = require('./routes/dispositivosRoute');
+const materialRoute = require('./routes/materialesRoute');
+const almacenRoute = require('./routes/almacenesRoute');
+const estanteRoute = require('./routes/estantesRoute');
 
 var app = express();
 
@@ -29,6 +33,11 @@ app.use(express.urlencoded({ extended: true })); // Analizar el cuerpo de las so
 
 // Configurar las rutas
 app.use('/users', userRoute);
+app.use('/dispositivos', deviceRoute);
+app.use('/materiales', materialRoute);
+app.use('/almacenes', almacenRoute);
+app.use('/estantes', estanteRoute);
+
 
 // Manejo de rutas no encontradas (404)
 app.use((req, res, next) => {
