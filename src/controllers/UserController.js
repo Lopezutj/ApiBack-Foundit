@@ -7,36 +7,31 @@ class UserController {
     // Crear usuario
     async create(req, res) {
         try {
-            console.log("Contraseña recibida: ",req.body.password);
+            //console.log("Contraseña recibida: ",req.body.password);
+
+            // Validar si el usuario ya existe
+            const existingUser = await UserModel.findOne({ email: req.body.email });
+            if (existingUser) {
+                return res.status(400).json({ error: "El usuario ya existe" });
+            }
+            if(!req.body.nombre || !req.body.email || !req.body.password || !req.body.tipo) {
+                return res.status(400).json({ error: "Faltan datos requeridos" });
+            }
+
             const createUser = await UserModel.create(req.body);
-            res.status(201).json({ mensaje: "Usuario creado", 
-                usuario: createUser });
+            res.status(201).json({
+                mensaje: "Usuario creado",
+                usuario: {
+                    nombre: createUser.nombre,
+                    email: createUser.email,
+                }
+            });
         } catch (err) {
             res.status(500).json({ error: "Error al crear el usuario", message: err.message });
         }
     }
 
-    // Iniciar sesión
-    async login(req,res){
-        try {
-            const {email,password} = req.body;
-            
-            const user = await UserModel.findOne({ email: email }); // Buscar el usuario por email
-            if (!user) {
-                return res.status(404).json({ error: "Usuario no encontrado" });
-            }
-            //verificar contraseña
-            const isvalidPassword = await bcrypt.compare(password, user.password); // Comparar la contraseña
-            if (!isvalidPassword) {
-                return res.status(401).json({ error: "Contraseña incorrecta" });
-            }
-            res.status(200).json({ mensaje: "Inicio de sesión exitoso"});
 
-        }catch (err) {
-            res.status(500).json({ error: "Error al iniciar sesión", message: err.message });
-        }
-
-    }
     // Obtener todos los usuarios
     async getAllUsers(req, res) {
         try {
