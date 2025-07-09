@@ -3,10 +3,15 @@ const bcrypt = require('bcrypt'); // importar bcrypt para hashear contraseñas
 const jwt = require('jsonwebtoken'); // importar jsonwebtoken para generar tokens de autenticación
 const dotenv = require('dotenv'); // importar dotenv para manejar variables de entorno
 dotenv.config(); // cargar las variables de entorno desde el archivo .env
+const AlmacenSchema = require('./AlmacenModel'); // importar el modelo de Almacen
 
 const UsuarioSchema = new mongoose.Schema({
     nombre: {
         type: String,
+        required: true,
+    },
+    apellido:{
+        type:string,
         required: true,
     },
     email: {
@@ -23,6 +28,11 @@ const UsuarioSchema = new mongoose.Schema({
         enum: ['admin', 'operador'],
         required: true 
     },
+    Timestamp:{
+        type: Date,
+        default: Date.now, // Establecer la fecha y hora actual como valor por defecto
+    },
+    almacen:[AlmacenSchema], // Relación con el modelo Almacen ñ
 });
 
 //Milware para hashear la contraseña antes de guardar el usuario

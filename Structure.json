@@ -1,0 +1,35 @@
+{
+    "Usuario": {
+        "id": 1,
+        "nombre": "Juan",
+        "apellido": "Perez",
+        "email": "juan.perez@example.com",
+        "tipo": "admin",
+        "contrasena": "123456",
+        "almacen":{
+            "NombreAlmacen": "Almacen 1",
+            "Direccion": "Direccion 1",
+            "estantes":[{
+                "nombre": "Estante 1",
+                "esp32": [
+                {
+                    "nombre":"dispositivo1",
+                    "direccionip":"192.168.4.1",
+                    "LED": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                    "sensor": [{}]                  
+                }
+                ]
+            }],
+            "Materiales":[{
+                "id": 1,
+                "nombre": "Material 1",
+                "descripcion": "Descripcion 1",
+                "cantidad": 100,
+                "ubicacion": "Ubicacion 1",
+                "movimientos":["entrada"]  
+            }]
+        }
+
+    }
+
+}
