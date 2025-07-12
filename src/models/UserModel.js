@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt'); // importar bcrypt para hashear contraseñas
 const jwt = require('jsonwebtoken'); // importar jsonwebtoken para generar tokens de autenticación
 const dotenv = require('dotenv'); // importar dotenv para manejar variables de entorno
 dotenv.config(); // cargar las variables de entorno desde el archivo .env
-const AlmacenSchema = require('./AlmacenModel'); // importar el modelo de Almacen
+const AlmacenModel = require('./AlmacenModel'); // importar el modelo de Almacen
 
 const UsuarioSchema = new mongoose.Schema({
     nombre: {
@@ -11,7 +11,7 @@ const UsuarioSchema = new mongoose.Schema({
         required: true,
     },
     apellido:{
-        type:string,
+        type: String,
         required: true,
     },
     email: {
@@ -32,7 +32,7 @@ const UsuarioSchema = new mongoose.Schema({
         type: Date,
         default: Date.now, // Establecer la fecha y hora actual como valor por defecto
     },
-    almacen:[AlmacenSchema], // Relación con el modelo Almacen ñ
+    almacen:[AlmacenModel.schema], // Relación con el modelo Almacen ñ
 });
 
 //Milware para hashear la contraseña antes de guardar el usuario
@@ -47,11 +47,12 @@ UsuarioSchema.pre('save', async function(next) {
 UsuarioSchema.methods.generarAuthToken = function() { // Método para generar un token de autenticación
     //lógica para generar un token JWT
     return jwt.sign({
+        _id:this._id, // ID del usuario
         nombre: this.nombre, // datos a enviar en el token
         email: this.email, // datos a enviar en el token
         tipo: this.tipo, // datos a enviar en el token
     },process.env.JWT_SECRET, { // usar la clave secreta del entorno
-        expiresIn: '1h', // el token expirará en 1 hora
+        expiresIn: '6h', // el token expirará en 1 hora
     });
 }
 
