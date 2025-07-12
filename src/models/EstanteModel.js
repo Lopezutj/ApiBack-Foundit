@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const DispositivoModel = require('./DispositivoModel'); // importar el modelo de Dispositivo
 
 const EstanteSchema = new mongoose.Schema({
     nombre:{
@@ -12,7 +13,9 @@ const EstanteSchema = new mongoose.Schema({
     fechaCreacion:{
         type: Date,
         default: Date.now,
-    }
+    },
+    dispositivo: [DispositivoModel.schema], // Usar el esquema del modelo Dispositivo
+
 });
 
 module.exports = mongoose.model('Estante', EstanteSchema);

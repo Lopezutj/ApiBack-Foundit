@@ -1,5 +1,6 @@
 const mongoose =  require('mongoose'); // importar mongoose para definir el esquema del modelo
-const EstanteSchema = require('./EstanteModel'); // importar el modelo de Estante
+const EstanteModel = require('./EstanteModel'); // importar el modelo de Estante
+const MaterialModel = require('./MaterialModel'); // importar el modelo de Material
 
 
 const AlmacenSchema = new mongoose.Schema({
@@ -11,7 +12,8 @@ const AlmacenSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    estantes: [EstanteSchema], // Relación con el modelo Estante
+    estantes: [EstanteModel.schema], // Usar el esquema del modelo Estante
+    materiales: [MaterialModel.schema], // Usar el esquema del modelo Material
     
     
 
