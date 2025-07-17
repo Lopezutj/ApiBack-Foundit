@@ -1,35 +1,32 @@
 {
-    "Usuario": {
-        "id": 1,
-        "nombre": "Juan",
-        "apellido": "Perez",
-        "email": "juan.perez@example.com",
+    "usuario": {
+        "name": "Juan Silva",
+        "apellido": "Silva",
+        "email": "email",
+        "password": "516168959",
         "tipo": "admin",
-        "contrasena": "123456",
-        "almacen":{
-            "NombreAlmacen": "Almacen 1",
-            "Direccion": "Direccion 1",
-            "estantes":[{
-                "nombre": "Estante 1",
-                "esp32": [
+        "almacen": {
+            "nombre": "Almacen 1",
+            "direccion": "Gudalajara 123",
+            "estantes": [
                 {
-                    "nombre":"dispositivo1",
-                    "direccionip":"192.168.4.1",
-                    "LED": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                    "sensor": [{}]                  
+                    "nombre": "Estante 1",
+                    "nombreDispositivo": "dispositivo1",
+                    "ip": "192.168.43.2",
+                    "Dispositivo": [
+                        {
+                            "celda": 1,
+                            "material": {
+                                "nombre": "Material 1",
+                                "descripcion": "Descripcion 1",
+                                "cantidad": 100,
+                                "ubicacion": "Ubicacion 1",
+                                "movimientos": ["entrada"]
+                            }
+                        }
+                    ]
                 }
-                ]
-            }],
-            "Materiales":[{
-                "id": 1,
-                "nombre": "Material 1",
-                "descripcion": "Descripcion 1",
-                "cantidad": 100,
-                "ubicacion": "Ubicacion 1",
-                "movimientos":["entrada"]  
-            }]
+            ]
         }
-
     }
-
 }

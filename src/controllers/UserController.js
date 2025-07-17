@@ -14,7 +14,7 @@ class UserController {
             if (existingUser) {
                 return res.status(400).json({ error: "El usuario ya existe" });
             }
-            if(!req.body.nombre || !req.body.apellido || !req.body.email || !req.body.password || !req.body.tipo) {
+            if(!req.body.name || !req.body.apellido || !req.body.email || !req.body.password || !req.body.tipo) {
                 return res.status(400).json({ error: "Faltan datos requeridos" });
             }
 
@@ -22,7 +22,7 @@ class UserController {
             res.status(201).json({
                 mensaje: "Usuario creado",
                 usuario: {
-                    nombre: createUser.nombre,
+                    name: createUser.name,
                     email: createUser.email,
                 }
             });

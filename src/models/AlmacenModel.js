@@ -4,7 +4,7 @@ const MaterialModel = require('./MaterialModel'); // importar el modelo de Mater
 
 
 const AlmacenSchema = new mongoose.Schema({
-    nombre: {
+    name: {
         type: String,
         required: true,
     },
@@ -12,11 +12,12 @@ const AlmacenSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    Timestamp:{
+        type: Date,
+        default: Date.now, // Establecer la fecha y hora actual como valor por defecto
+    },
     estantes: [EstanteModel.schema], // Usar el esquema del modelo Estante
-    materiales: [MaterialModel.schema], // Usar el esquema del modelo Material
     
-    
-
 });
 
 module.exports = mongoose.model('Almacen', AlmacenSchema); // Exportar el modelo de almacen

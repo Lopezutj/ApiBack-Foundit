@@ -1,17 +1,60 @@
+const AlmacenModel = require('../models/AlmacenModel');
 const EstanteModel = require('../models/EstanteModel');
+const UserModel = require('../models/UserModel');
 
 class EstanteController{
     constructor(){}//constructor vacío para la clase EstanteController como POO
 
     //funcion del tipo POST para crear un nuevo estante
     async create(req,res){
-        try{
-            const createEstante = await EstanteModel.create(req.body);
-            res.status(201).json({mensaje: "Estante creado", estante: createEstante});
+
+        //obtenemos el usuario que está creando el estante
+        let usuario = req.usuario; // Asumiendo que el middleware de autenticación ha agregado el usuario a la solicitud
+
+        //verificar si el usuario tiene permisos para crear un estante
+        if(usuario.tipo !== 'admin'){
+            return res.status(403).json({error: "No tienes permisos para crear un estante"});
         }
-        catch(err){
-            res.status(500).json({error: "Error al crear el estante", message: err.message});
+
+        //validamos los datos del cuerpo de la solicitud
+        if(!req.body.name || !req.body.nameDispositivo || !req.body.ip){
+            return res.status(400).json({error: "Faltan datos requeridos para crear el estante"});
         }
+
+        //validamos id del usuario
+        if(!usuario._id){
+            return res.status(401).json({error: "Usuario no entrado o no existe"});
+        }
+
+        //creamos el estante 
+        try {
+
+            //console.log('Usuario del token:', usuario); // Ver qué contiene el token
+            //console.log('ID del usuario:', usuario._id); // Ver el ID específico
+        
+            const updateEstante = await UserModel.findByIdAndUpdate(
+                usuario._id, // ID del almacén al que se le agregará el estante
+                { $push: { "almacen.0.estantes": req.body }  }, // Agregar el nuevo estante al array de estantes del usuario
+                { new: true } // Devolver el documento actualizado
+            );
+
+
+            if (!updateEstante) {
+                console.error("Error al agregar el estante:", updateEstante);
+                return res.status(404).json({ error: "Error al agregar el estante" });
+            }
+
+            const newEstante = updateEstante.almacen[0].estantes[updateEstante.almacen[0].estantes.length - 1]; // Obtener el último estante agregado
+
+            res.status(201).json({
+                mensaje: "Estante creado y asociado al usuario",
+                estante: newEstante,
+                usuarioId: usuario._id
+            });
+        } catch (err) {
+            res.status(500).json({ error: "Error al crear el estante", message: err.message });
+        }
+
     }//cierre la función create
 
     //funcion del tipo GET para obtener un estante por ID
