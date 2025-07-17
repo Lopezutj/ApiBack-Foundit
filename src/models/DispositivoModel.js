@@ -1,27 +1,12 @@
 const mongoose = require('mongoose');
+const MaterialModel = require('./MaterialModel'); // Importar el modelo de Material
 
 const DispositivoSchema = new mongoose.Schema({
-    nombre:{
-        type: String,
-        required: true,
+    celda: { // Nombre de la celda del dispositivo
+        type: Number,
+        required: false,
     },
-    direccionIp:{
-        type: String,
-        required: true,
-    },
-    estado:{
-        type: String,
-        required: true,
-    },
-    leds:{
-        type: [Number], // Array de números para almacenar los estados de los LEDs
-        default: [], // Valor por defecto es un array vacío
-        required: true
-    },
-    fechaCreacion:{
-        type: Date, // Tipo de dato Date para almacenar la fecha y hora
-        default: Date.now, // Establecer la fecha y hora actual como valor por defecto
-    }
+    materiales: [MaterialModel.schema], // Relación con el modelo Material, para almacenar los materiales del dispositivo
 
 });
 

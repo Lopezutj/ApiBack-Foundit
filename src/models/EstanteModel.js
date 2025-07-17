@@ -1,20 +1,20 @@
 const mongoose = require('mongoose');
-const DispositivoModel = require('./DispositivoModel'); // importar el modelo de Dispositivo
+const DispositivoModel = require('./DispositivoModel'); // Importar el modelo de Dispositivo
 
 const EstanteSchema = new mongoose.Schema({
-    nombre:{
+    name:{ //nombre del estante
         type: String,
         required: true,
     },
-    casillas:{
-        type: Number,
+    nameDispositivo: { //nombre del dispositivo asociado al estante
+        type: String,
         required: true,
     },
-    fechaCreacion:{
-        type: Date,
-        default: Date.now,
+    ip: { // dirección IP del dispositivo asociado al estante
+        type: String,
+        required: true,
     },
-    dispositivo: [DispositivoModel.schema], // Usar el esquema del modelo Dispositivo
+    dispositivos: [DispositivoModel.schema], // Relación con el modelo Material, para almacenar los materiales en el estante
 
 });
 

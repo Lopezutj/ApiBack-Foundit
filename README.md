@@ -29,3 +29,77 @@ cp .env.example .env
 
 # Ejecutar el servidor
 npm run dev / npm start
+
+
+
+## 📚 Ejemplos de uso de la API
+
+A continuación se muestran ejemplos de cómo interactuar con los principales endpoints de la API:
+
+### 👤 Crear un usuario
+
+```http
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+    "name": "test",
+    "apellido": "Demo",
+    "email": "example@correo.com",
+    "password": "123456",
+    "tipo": "admin"
+}
+```
+
+### 🔑 Login de usuario
+
+```http
+POST http://localhost:3000/login
+Content-Type: application/json
+Authorization: <Token generado aquí>
+
+{
+    "email": "example@correo.com",
+    "password": "123456"
+}
+```
+
+### 🏢 Crear un almacén (actualizando el usuario)
+
+```http
+POST http://localhost:3000/almacenes
+Content-Type: application/json
+
+{
+    "name": "Almacén",
+    "direccion": "Av. José María Morelos #123, Col. Centro"
+}
+```
+
+### 🗄️ Crear un estante
+
+```http
+POST http://localhost:3000/estantes
+Content-Type: application/json
+
+{
+    "name": "Estante 1",
+    "nameDispositivo": "ESP32 De roberto",
+    "ip": "192.168.45.1"
+}
+```
+
+### AGREGAR UN MATERIAL Y LA UBICACION:
+
+```http://localhost:3000/dispositivos
+{
+  "celda": 1,
+  "materiales": {
+    "name": "Tornillos M6",
+    "description": "Tornillos de plata",
+    "cantidad": 50,
+    "ubicacion": "Pasillo A-3",
+    "movimientos": ["entrada"]
+  }
+}
+```

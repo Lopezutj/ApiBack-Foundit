@@ -6,7 +6,7 @@ dotenv.config(); // cargar las variables de entorno desde el archivo .env
 const AlmacenModel = require('./AlmacenModel'); // importar el modelo de Almacen
 
 const UsuarioSchema = new mongoose.Schema({
-    nombre: {
+    name: {
         type: String,
         required: true,
     },
@@ -56,4 +56,4 @@ UsuarioSchema.methods.generarAuthToken = function() { // Método para generar un
     });
 }
 
-module.exports = mongoose.model('Usuario', UsuarioSchema); // Exportar el modelo de usuario
+module.exports = mongoose.model('user', UsuarioSchema); // Exportar el modelo de usuario

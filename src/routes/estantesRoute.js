@@ -1,12 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const DispositivoController = require('../controllers/DispositivoController');
+const EstanteController = require('../controllers/EstanteController');
+const autentificaJWT = require('../../middleware/auntentificaJWT'); // Importar el middleware de autenticación
 
-// Rutas para el controlador de Dispositivo
-router.post('/', DispositivoController.create); // Crear un nuevo dispositivo
-router.get('/:id', DispositivoController.getDispositivoById); // Obtener un dispositivo por ID
-router.get('/', DispositivoController.getAllDispositivos); // Obtener todos los dispositivos
-router.put('/:id', DispositivoController.updateDispositivoById); // Actualizar un dispositivo por ID
-router.delete('/:id', DispositivoController.deleteDispositivoById); // Eliminar un dispositivo por ID
+//rutas para el controlador de estantes
+router.post('/',autentificaJWT,EstanteController.create); // Ruta para crear un estante
 
 module.exports = router; // Exportar el enrutador para usarlo en otros archivos

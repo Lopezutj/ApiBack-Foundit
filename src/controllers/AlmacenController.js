@@ -18,22 +18,23 @@ class AlmacenController{
             return res.status(403).json({ error: "No tienes permisos para crear un almacén" });
         }
         // Validar los datos del cuerpo de la solicitud
-        if (!req.body.direccion || !req.body.nombre) {
+        if (!req.body.direccion || !req.body.name) {
             return res.status(400).json({ error: "Faltan datos requeridos para crear el almacén" });
         }
 
         
         console.log('Usuario del token:', usuario); // Ver qué contiene el token
-        console.log('ID del usuario:', usuario.id); // Ver el ID específico
+        console.log('ID del usuario:', usuario._id); // Ver el ID específico
 
-        if(!usuario.id){
+        if(!usuario._id){
             console.log(usuario);
             return res.status(400).json({ error: "Usuario no encontrado o no existe" });
         }
 
+        //console.log('Datos del cuerpo de la solicitud:', req.body); // Ver los datos del cuerpo de la solicitud
             // Crear el almacén
             const updateUser = await UserModel.findByIdAndUpdate(
-                usuario.id, // ID del usuario logueado
+                usuario._id, // ID del usuario logueado
                 { $push: { almacen: req.body } }, // Agregar el nuevo almacén al array de almacenes del usuario
                 { new: true } // Devolver el documento actualizado
             );
