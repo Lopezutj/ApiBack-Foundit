@@ -6,7 +6,7 @@ const autentificaJWT = require('../../middleware/auntentificaJWT');
 
 router.post('/', UserController.create); // Ruta para crear un usuario
 router.get('/',autentificaJWT, UserController.getAllUsers); // Ruta para obtener todos los usuarios
-router.get('/:id', UserController.getUserbyId); // Ruta para obtener un usuario por ID
+router.get('/name/:name', UserController.getUserbyname); // Ruta para obtener un usuario por nombre
 router.put('/:id', UserController.updateUser); // Ruta para actualizar un usuario por ID
 router.delete('/:id', UserController.deleteUser); // Ruta para eliminar un usuario por ID
 
