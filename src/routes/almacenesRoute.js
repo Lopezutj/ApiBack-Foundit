@@ -10,4 +10,5 @@ router.get('/', autentificaJWT, AlmacenController.getAlmacenByDireccion); // Obt
 router.put('/:id', autentificaJWT, AlmacenController.updateAlmacenById); // Actualizar un almacén por ID
 router.delete('/:id', autentificaJWT, AlmacenController.deleteAlmacenById); // Eliminar un almacén por ID 
 
+
 module.exports = router; // Exportar el enrutador para usarlo en otros archivos

@@ -11,6 +11,10 @@ class DispositivoController{
 
         let usuario = req.usuario; // Asumiendo que el middleware de autenticación ha agregado el usuario a la solicitud
 
+        console.log('Usuario autenticado:', usuario); // Verificar el usuario autenticado
+        console.log('ID del usuario:', usuario._id); // Verificar el ID del usuario autenticado
+        console.log('token del usuario:', req.token); // Verificar el token del usuario autenticado
+
         //validamos el id del usuario logueado
         if(!usuario._id){
             return res.status(401).json({error: "Usuario no entrado o no existe"});
@@ -26,10 +30,6 @@ class DispositivoController{
         //creamos el dispositivo y agregamos el material 
         try{
             
-            //console.log('Usuario del token:', usuario); // Ver qué contiene el token
-            //console.log('ID del usuario:', usuario._id); // Ver el ID específico
-            //console.log('Datos del cuerpo:', req.body); // Ver los datos del dispositivo que se están creando
-
             //agregamos una celda al dispositivo
         const updateDispositivo = await UserModel.findByIdAndUpdate(
                 usuario._id, // ID del usuario al que se le agregará el dispositivo 
@@ -41,9 +41,6 @@ class DispositivoController{
                 }}, // Agregar el nuevo dispositivo al array de dispositivos del usuario
                 { new: true } // Devolver el documento actualizado
         );
-
-        //console.log('Documento actualizado:', updateDispositivo);
-        //console.log('Dispositivos:', updateDispositivo.almacen[0].estantes[0].dispositivos);
 
         if(!updateDispositivo.almacen[0].estantes[0].dispositivos){
             return res.status(404).json({error: "Error al agregar el material al dispositivo"});

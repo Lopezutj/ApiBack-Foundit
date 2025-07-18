@@ -11,6 +11,7 @@ class UserController {
 
             // Validar si el usuario ya existe
             const existingUser = await UserModel.findOne({ email: req.body.email });
+            
             if (existingUser) {
                 return res.status(400).json({ error: "El usuario ya existe" });
             }
@@ -34,25 +35,58 @@ class UserController {
 
     // Obtener todos los usuarios
     async getAllUsers(req, res) {
-        try {
-            const users = await UserModel.find(); // Usar find() de Mongoose
-            if (users.length === 0) {
-                return res.status(404).json({ error: "No hay usuarios registrados" });
+        try{
+            const users = await UserModel.find(); // Usar find() de Mongoose para obtener todos los usuarios
+            if (users.length === 0) { //validar si no hay usuarios
+                return res.status(404).json({ error: "No se encontraron usuarios" });
             }
-            res.status(200).json({ mensaje: "Usuarios encontrados", usuarios: users });
-        } catch (err) {
-            res.status(500).json({ error: "Error al obtener los usuarios", message: err.message });
+            res.status(200).json({
+                mensaje: "Usuarios encotrados",
+                total: users.length, // Total de usuarios encontrados
+                usuarios: users.map(user => ({
+                    _id: user._id,
+                    name: user.name,
+                    apellido: user.apellido,
+                    email: user.email,
+                    tipo: user.tipo,
+                    timestamp: user.Timestamp
+                })) // Mapear los usuarios para devolver solo los campos necesarios
+
+            });
+        }catch (error) {
+            res.status(500).json({ error: "Error al obtener los usuarios", message: error.message });
         }
     }
 
-    // Obtener usuario por ID
-    async getUserbyId(req, res) {
+    // Obtener usuario por nombre
+    async getUserbyname(req, res) {
+
+        // Validar si el nombre está presente en la solicitud
+        if(!req.params.name) {
+            return res.status(401).json({ error: "Nombre de usuario no proporcionado" });
+        }   
+
+        console.log("Nombre de usuario recibido:", req.params.name); // Verificar el nombre recibido
+
         try {
-            const userId = await UserModel.findById(req.params.id); // Usar findById() de Mongoose
-            if (!userId) {
-                return res.status(404).json({ error: "Usuario no encontrado" });
+            const user = await UserModel.findOne({name: req.params.name}); // Usar findById() de Mongoose
+            //console.log("Usuario encontrado:", user); // Verificar qué devuelve
+
+            if (!user) {
+                return res.status(401).json({ error: "Usuario no encontrado" });
             }
-            res.status(200).json({ mensaje: "Usuario encontrado", usuario: userId });
+
+            res.status(200).json({
+                mensaje : "Usuario encontrado",
+                usuario: {
+                    _id : user._id,
+                    name : user.name,
+                    apellido : user.apellido,
+                    email: user.email,
+                    tipo: user.tipo,
+                    timestamp: user.Timestamp
+                }
+            });
         } catch (error) {
             res.status(500).json({ error: "Error al obtener el usuario", message: error.message });
         }
