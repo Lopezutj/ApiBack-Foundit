@@ -50,64 +50,212 @@ class AlmacenController{
             res.status(500).json({ error: "Error al crear el almacen", message: err.message });
         }
 
-    }// Crear un nuevo almacen     
+    }// Crear un nuevo almacen  
+    
+    async getALmacenAll(req,res){
 
-    //funcion del tipo GET para obtener alamcen por ID
-    async getAlmacenById(req, res){
         try{
-            const almacenId = await AlmacenModel.findById(req.params.id); // se usa la fucnción findById de Mongoose
-            if (!almacenId){
-                return res.status(404).json({error: "Almacen no encontrado" });
-            }
-            res.status(200).json({mensaje: "Almacen encontrado", almacen: almacenId });
-        }catch (err){
-            res.status(500).json({ error: "Error al obtener el almacen", message: err.message });
-        }
-    }//cierre la función getAlmacenById
+            
+            const usuariosConAlmacenes = await UserModel.find({
+                'almacen.0': {
+                    $exists: true 
+                    } 
+            }, 'almacen'); // Obtener usuarios que tienen almacenes
 
-    //funcion del tipo GET para filtrar almacenes por direccion
-    async getAlmacenByDireccion(req, res){
-        try{
-            const direccion = req.query.direccion; // Obtener la dirección de los parámetros de consulta
-            const almacenes = await AlmacenModel.find({ direccion: direccion }); // Filtrar almacenes por dirección
-            if (almacenes.length === 0){
-                return res.status(404).json({ error: "No se encontraron almacenes con esa dirección" });
+            let todosLosAlmacenes = []; // Inicializar un array para almacenar todos los almacenes
+            usuariosConAlmacenes.forEach(usuario =>{
+                todosLosAlmacenes = todosLosAlmacenes.concat(usuario.almacen); // Concatenar los almacenes de cada usuario al array
+            });
+
+            if(!todosLosAlmacenes || todosLosAlmacenes.length === 0){
+                return res.status(404).json({ error: "No se encontraron almacenes" });
             }
-            res.status(200).json({ mensaje: "Almacenes encontrados", almacenes: almacenes });
-        }catch (err){
-            res.status(500).json({ error: "Error al obtener los almacenes", message: err.message });
+
+            res.status(200).json({
+                mensaje: "Almacenes encontrados",
+                almacenes: todosLosAlmacenes.map(almacen => ({ //mapear los almacenes para devolver solo los campos necesarios
+                    _id: almacen._id,
+                    name: almacen.name,
+                    direccion: almacen.direccion,
+                    Timestamp: almacen.Timestamp
+                })),
+                total: todosLosAlmacenes.length //total en numeros
+            });
+
+        }catch(err){
+            res.status(400).json({ error: "Error al obtener los almacenes", message: err.message });
+
         }
-    }//cierre la función getAlmacenByDireccion
+    }
+    //funcion del tipo get para filtrar un almacen por nombres
+    async getAlmacenName(req, res){
+
+        try{   
+
+            let nombreAlmacen = req.params.name; // Obtener el nombre del almacén desde los parámetros de la solicitud
+
+            console.log('Nombre del almacén:', nombreAlmacen); // Verificar el nombre del almacén
+
+            if(!nombreAlmacen){
+                return res.status(403).json({ error: "Falta el nombre del almacén" });
+            }
+
+            if(!nombreAlmacen.match(/^[a-zA-Z0-9\s]+$/)){ // Validar que el nombre del almacén solo contenga letras, números y espacios
+                return res.status(422).json({ error: "El nombre del almacén contiene caracteres no válidos" });
+            }
+
+            const usuarios = await UserModel.find({
+                "almacen.name": {$regex: nombreAlmacen, $options: "i"} // Buscar almacenes por nombre (insensible a mayúsculas y minúsculas)
+            }, 'almacen'); // Obtener usuarios que tienen almacenes con el nombre especificado
+            
+            //extraer los almacenes de los usuarios
+            let almacenesEncontrados = [];
+            usuarios.forEach(usuario => { //recorrer cada usuario
+                const almacenesCoincidentes = usuario.almacen.filter(
+                    almacen => almacen.name.toLowerCase().includes(nombreAlmacen.toLowerCase()) // Filtrar almacenes por nombre
+                );
+                almacenesEncontrados = almacenesEncontrados.concat(almacenesCoincidentes); // Concatenar los almacenes encontrados
+            });
+
+            if (almacenesEncontrados.length === 0) {
+                return res.status(404).json({ error: "No se encontraron almacenes con ese nombre" });
+            }
+
+            res.status(200).json({
+                mensaje: "Almacenes encontrados por nombre",
+                almacenes: almacenesEncontrados.map(almacen => ({ //mapear los almacenes para devolver solo los campos necesarios
+                    _id: almacen._id,
+                    name: almacen.name,
+                    direccion: almacen.direccion,
+                    Timestamp: almacen.Timestamp
+                })),
+                total: almacenesEncontrados.length //total en numeros
+            });
+
+        }catch(err){
+            res.status(400).json({error: "Error al obtener el almacen por el nombre", message: err.message});
+        }
+    }//cierre la función getAlmacenName
 
     //funcion del tipo put para actualizar un almacen por ID
-    async updateAlmacenById(req,res){
-        // Se usa la función findByIdAndUpdate de Mongoose para actualizar un almacen por ID
+    async updateAlmacenById(req, res){
         try{
-            const updateAlmacenById = await AlmacenModel.findByIdAndUpdate
-            (
-                req.params.id, // ID del almacen a actualizar
-                req.body, // Datos a actualizar
-                { new: true } // Devuelve el documento actualizado
-            );
-            if (!updateAlmacenById){
-                return res.status(404).json({ error: "Almacen no encontrado" });
+            // Obtener el usuario autenticado
+            const usuario = req.usuario;
+            //console.log('Usuario del token:', usuario); // Ver qué contiene el token
+            //console.log('ID del usuario:', usuario._id); // Ver el ID específico    
+            
+            // Verificar permisos (solo admin o el propietario puede actualizar)
+            if (usuario.tipo !== 'admin') {
+                return res.status(403).json({ error: "No tienes permisos para actualizar almacenes" });
             }
-            res.status(200).json({ mensaje: "Almacen actualizado", almacen: updateAlmacenById });
+
+            // Validar que se proporcione el ID del almacén
+            if (!req.params.id) {
+                return res.status(400).json({ error: "ID del almacén requerido" });
+            }
+
+            // Validar datos del cuerpo de la solicitud
+            if (!req.body || Object.keys(req.body).length === 0) {
+                return res.status(400).json({ error: "Datos para actualizar requeridos" });
+            }
+
+            // Buscar el usuario que contiene el almacén
+            const usuarioConAlmacen = await UserModel.findOne({
+                "almacen._id": req.params.id
+            });
+
+            if (!usuarioConAlmacen) {
+                return res.status(404).json({ error: "Almacén no encontrado" });
+            }
+
+            // Encontrar el índice del almacén en el array
+            const almacenIndex = usuarioConAlmacen.almacen.findIndex(
+                almacen => almacen._id.toString() === req.params.id // Comparar como cadena para evitar problemas de tipo ObjectId
+            );
+
+            if (almacenIndex === -1) {  // Verificar si el almacén existe en el array
+                return res.status(404).json({ error: "Almacén no encontrado" });
+            }
+
+            // Preparar los campos a actualizar
+            const camposActualizar = {};
+            if (req.body.name) camposActualizar[`almacen.${almacenIndex}.name`] = req.body.name;
+            if (req.body.direccion) camposActualizar[`almacen.${almacenIndex}.direccion`] = req.body.direccion;
+            
+            // Actualizar timestamp
+            camposActualizar[`almacen.${almacenIndex}.Timestamp`] = new Date();
+
+            // Actualizar el almacén específico
+            const usuarioActualizado = await UserModel.findByIdAndUpdate(
+                usuarioConAlmacen._id, // ID del usuario que contiene el almacén
+                { $set: camposActualizar },  //insertamos los campos a actualizar
+                { new: true,runValidators: true } // Devolver el documento actualizado y aplicar validaciones 
+            );
+
+            // Obtener el almacén actualizado
+            const almacenActualizado = usuarioActualizado.almacen.find(
+                almacen => almacen._id.toString() === req.params.id
+            );
+
+            res.status(200).json({ 
+                mensaje: "Almacén actualizado correctamente", 
+                almacen: {
+                    _id: almacenActualizado._id,
+                    name: almacenActualizado.name,
+                    direccion: almacenActualizado.direccion,
+                    Timestamp: almacenActualizado.Timestamp
+                }
+            });
+
         }catch (err){
-            res.status(500).json({error: "Error al actualizar el almacen", message: err.message });
+            res.status(500).json({error: "Error al actualizar el almacén", message: err.message });
         }
     }//cierre la función updateAlmacenById
 
     //funcion del tipo delete para eliminar un almacen por ID
     async deleteAlmacenById(req, res){
         try{
-            const deleteAlmacenById = await AlmacenModel.findByIdAndDelete(req.params.id); // Se usa la función findByIdAndDelete de Mongoose
-            if (!deleteAlmacenById){
-                return res.status(404).json({ error: "Almacen no encontrado" });
+
+            let _id = req.params.id; // Obtener el ID del almacén desde los parámetros de la solicitud
+            let usuario = req.usuario; // Obtener el usuario autenticado
+
+            if(usuario.tipo !== 'admin'){
+                return res.status(403).json({ error: "No tienes permisos para eliminar almacenes" });
             }
-            res.status(200).json({ mensaje: "Almacen eliminado" });
+
+            if(!_id){
+                return res.status(400).json({ error: "ID del almacén requerido" });
+            }
+
+            // Primero verificar que el almacén existe
+            const usuarioConAlmacen = await UserModel.findOne({
+                "almacen._id": _id
+            });
+
+            if (!usuarioConAlmacen) {
+                return res.status(404).json({ error: "Almacén no encontrado" });
+            }
+
+            // Eliminar el almacén del array embebido usando $pull
+            const resultado = await UserModel.findByIdAndUpdate(
+                usuarioConAlmacen._id,
+                { $pull: { almacen: { _id: _id } } }, // Eliminar el almacén con el ID especificado
+                { new: true }
+            );
+
+            console.log('Resultado de eliminación:', resultado ? 'Almacén eliminado correctamente' : 'Error al eliminar'); 
+            
+            if (!resultado) {
+                return res.status(500).json({ error: "Error al eliminar el almacén" });
+            }
+
+            res.status(200).json({ 
+                mensaje: "Almacén eliminado correctamente",
+                almacenId: _id
+            });
         }catch (err){
-            res.status(500).json({ error: "Error al eliminar el almacen", message: err.message });
+            res.status(400).json({ error: "Error al eliminar el almacen", message: err.message });
         }
     }//cierre la función deleteAlmacenById
 

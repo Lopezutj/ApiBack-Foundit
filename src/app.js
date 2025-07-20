@@ -34,12 +34,12 @@ app.use(express.json()); // Analizar el cuerpo de las solicitudes JSON
 app.use(express.urlencoded({ extended: true })); // Analizar el cuerpo de las solicitudes URL-encoded
 
 // Configurar las rutas
-app.use('/login', authRoute); // Ruta para autenticación
-app.use('/users', userRoute);
-app.use('/dispositivos', deviceRoute);
-app.use('/materiales', materialRoute);
-app.use('/almacenes', almacenRoute);
-app.use('/estantes', estanteRoute);
+app.use('/login', authRoute); // Ruta para autenticación y
+app.use('/users', userRoute); // Ruta para manejar usuarios
+app.use('/almacenes', almacenRoute); // Ruta para manejar almacenes
+app.use('/estantes', estanteRoute); // Ruta para manejar estantes
+app.use('/dispositivos', deviceRoute); // Ruta para manejar dispositivos
+app.use('/materiales', materialRoute); // Ruta para manejar materiales
 
 
 // Manejo de rutas no encontradas (404)

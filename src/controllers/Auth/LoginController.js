@@ -14,15 +14,19 @@ class LoginController {
         try {
 
             const {email,password} = req.body;
+
+            if(!email || !password) { 
+                return res.status(404).json({ error: "Email y contraseña son requeridos" });
+            }
                 
             const user = await UserModel.findOne({ email: email }); // Buscar el usuario por email
                 if (!user) {
-                    return res.status(404).json({ error: "Usuario no encontrado" });
+                    return res.status(422).json({ error: "Usuario no encontrado" });
                 }
              //verificar contraseña
             const isvalidPassword = await bcrypt.compare(password, user.password); // Comparar la contraseña
                 if (!isvalidPassword) {
-                    return res.status(401).json({ error: "Contraseña y/o incorrecta" });
+                    return res.status(422).json({ error: "Contraseña y/o incorrecta" });
                 }
 
             res.status(200).json({ 
@@ -37,7 +41,7 @@ class LoginController {
             });
     
         }catch (err) {
-                res.status(500).json({ error: "Error al iniciar sesión", message: err.message });
+                res.status(400).json({ error: "Error al iniciar sesión", message: err.message });
         }
     
     }
