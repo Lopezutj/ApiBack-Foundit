@@ -48,7 +48,7 @@ UsuarioSchema.methods.generarAuthToken = function() { // Método para generar un
     //lógica para generar un token JWT
     return jwt.sign({
         _id:this._id, // ID del usuario
-        nombre: this.nombre, // datos a enviar en el token
+        name: this.name, // datos a enviar en el token
         email: this.email, // datos a enviar en el token
         tipo: this.tipo, // datos a enviar en el token
     },process.env.JWT_SECRET, { // usar la clave secreta del entorno
