@@ -11,10 +11,6 @@ class DispositivoController{
 
         let usuario = req.usuario; // Asumiendo que el middleware de autenticación ha agregado el usuario a la solicitud
 
-        console.log('Usuario autenticado:', usuario); // Verificar el usuario autenticado
-        console.log('ID del usuario:', usuario._id); // Verificar el ID del usuario autenticado
-        console.log('token del usuario:', req.token); // Verificar el token del usuario autenticado
-
         //validamos el id del usuario logueado
         if(!usuario._id){
             return res.status(401).json({error: "Usuario no entrado o no existe"});
@@ -25,7 +21,6 @@ class DispositivoController{
         if(!req.body.celda || !req.body.materiales){
             return res.status(401).json({error: "Faltan datos requeridos para crear el dispositivo"});
         }
-
 
         //creamos el dispositivo y agregamos el material 
         try{
