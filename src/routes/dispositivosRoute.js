@@ -4,7 +4,7 @@ const DispositivoController = require('../controllers/DispositivoController');
 const autentificaJWT = require('../../middleware/auntentificaJWT'); // Middleware para autenticar JWT
 
 // Rutas para el controlador de Dispositivo
-router.post('/', autentificaJWT ,DispositivoController.create); // Crear un nuevo dispositivo
+router.post('/', autentificaJWT ,DispositivoController.create); // Crear un nuevo material en un estante del dispositivo 
 router.get('/:id', DispositivoController.getDispositivoById); // Obtener un dispositivo por ID
 router.get('/', DispositivoController.getAllDispositivos); // Obtener todos los dispositivos
 router.put('/:id', DispositivoController.updateDispositivoById); // Actualizar un dispositivo por ID
