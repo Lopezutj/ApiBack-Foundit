@@ -8,51 +8,72 @@ class MaterialController{
     async create(req,res){
         let usuario = req.usuario; // Asumiendo que el middleware de autenticación ha agregado el usuario a la solicitud
         
-                //validamos el id del usuario logueado
-                if(!usuario._id){
-                    return res.status(401).json({error: "Usuario no entrado o no existe"});
+        //validamos el id del usuario logueado
+        if(!usuario._id){
+            return res.status(401).json({error: "Usuario no entrado o no existe"});
+        }
+        console.log('Cuerpo de la solicitud:', req.body); // Ver qué datos se están enviando en la solicitud
+
+        //validamos los datos que vienen en el cuerpo de la solicitud
+        if(!req.body.celda || !req.body.material || !req.body.almacenId || !req.body.estanteId){
+            return res.status(401).json({error: "Faltan datos requeridos para crear el material (celda, material, almacenId, estanteId)"});
+        }
+
+        //creamos el dispositivo y agregamos el material 
+        try{
+            
+            // Buscar el usuario que contiene el almacén y estante
+            const usuarioConAlmacen = await UserModel.findOne({
+                _id: usuario._id,
+                "almacen._id": req.body.almacenId
+            });
+
+            if (!usuarioConAlmacen) {
+                return res.status(404).json({ error: "Almacén no encontrado o no pertenece al usuario" });
+            }
+
+            // Verificar que el estante existe
+            const estante = usuarioConAlmacen.almacen.estantes.find(
+                estante => estante._id.toString() === req.body.estanteId
+            );
+
+            if (!estante) {
+                return res.status(404).json({ error: "Estante no encontrado" });
+            }
+
+            // Agregar el dispositivo con material al estante específico
+            const updateDispositivo = await UserModel.findByIdAndUpdate(
+                usuario._id,
+                { $push: { "almacen.estantes.$[estante].dispositivos": {
+                    celda: req.body.celda,
+                    material: req.body.material
+                }}},
+                { 
+                    arrayFilters: [{ "estante._id": req.body.estanteId }],
+                    new: true 
                 }
-                console.log('Cuerpo de la solicitud:', req.body); // Ver qué datos se están enviando en la solicitud
-        
-                //validamos los datos que vienen en el cuerpo de la solicitud
-                if(!req.body.celda || !req.body.materiales){
-                    return res.status(401).json({error: "Faltan datos requeridos para crear el dispositivo"});
-                }
-        
-                //creamos el dispositivo y agregamos el material 
-                try{
-                    
-                    //agregamos una celda al dispositivo
-                const updateDispositivo = await UserModel.findByIdAndUpdate(
-                        usuario._id, // ID del usuario al que se le agregará el dispositivo 
-                        { $push: {
-                            "almacen.0.estantes.0.dispositivos":{
-                                celda: req.body.celda, // Agregar la celda del dispositivo
-                                materiales: req.body.materiales // Agregar los materiales del dispositivo
-                            } 
-                        }}, // Agregar el nuevo dispositivo al array de dispositivos del usuario
-                        { new: true } // Devolver el documento actualizado
-                );
-        
-                if(!updateDispositivo.almacen[0].estantes[0].dispositivos){
-                    return res.status(404).json({error: "Error al agregar el material al dispositivo"});
-                
-                }
-        
-                const dispositivos = updateDispositivo.almacen[0].estantes[0].dispositivos; //accedemos al array de dispositivos
-                const newDispositivo = dispositivos[dispositivos.length - 1]; // Obtener el último dispositivo agregado
-                const newMaterial = newDispositivo.materiales; // obtener los materiales del dispositivo
-        
-                res.status(201).json({
-                    mensaje: "Dispositivo y material creados y asociados al usuario",
-                    dispositivo: newDispositivo,
-                    material: newMaterial,
-                    usuarioId: usuario._id
-                });
-        
-                }catch(err){
-                    return res.status(500).json({error: "Error al crear el dispositivo", message: err.message});
-                }
+            );
+
+            if(!updateDispositivo.almacen.estantes){
+                return res.status(404).json({error: "Error al agregar el material al dispositivo"});
+            }
+
+            const estanteActualizado = updateDispositivo.almacen.estantes.find(
+                estante => estante._id.toString() === req.body.estanteId
+            );
+            const newDispositivo = estanteActualizado.dispositivos[estanteActualizado.dispositivos.length - 1];
+            const newMaterial = newDispositivo.material;
+
+            res.status(201).json({
+                mensaje: "Dispositivo y material creados y asociados al usuario",
+                dispositivo: newDispositivo,
+                material: newMaterial,
+                usuarioId: usuario._id
+            });
+
+        }catch(err){
+            return res.status(500).json({error: "Error al crear el dispositivo", message: err.message});
+        }
     }//cierre de creacion de material
 
     //funcion GET para obtener todos los materiales
@@ -60,7 +81,7 @@ class MaterialController{
         try{
             // Buscar usuarios que tengan materiales en dispositivos
             const usuariosConMateriales = await UserModel.find({
-                "almacen.estantes.dispositivos.materiales.0": { $exists: true }
+                "almacen.estantes.dispositivos.material": { $exists: true }
             }, 'almacen');
 
             if(usuariosConMateriales.length === 0){
@@ -70,45 +91,42 @@ class MaterialController{
             // Extraer todos los materiales de todos los dispositivos
             let todosLosMateriales = [];
             usuariosConMateriales.forEach(usuario => {
-                usuario.almacen.forEach(almacen => {
-                    if(almacen.estantes && almacen.estantes.length > 0) {
-                        almacen.estantes.forEach(estante => {
-                            if(estante.dispositivos && estante.dispositivos.length > 0) {
-                                estante.dispositivos.forEach(dispositivo => {
-                                    if(dispositivo.materiales && dispositivo.materiales.length > 0) {
-                                        dispositivo.materiales.forEach(material => {
-                                            todosLosMateriales.push({
-                                                _id: material._id,
-                                                name: material.name,
-                                                description: material.description,
-                                                cantidad: material.cantidad,
-                                                ubicacion: material.ubicacion,
-                                                movimientos: material.movimientos,
-                                                Timestamp: material.Timestamp,
-                                                // Información de contexto
-                                                dispositivo: {
-                                                    _id: dispositivo._id,
-                                                    celda: dispositivo.celda
-                                                },
-                                                estante: {
-                                                    _id: estante._id,
-                                                    name: estante.name,
-                                                    nameDispositivo: estante.nameDispositivo,
-                                                    ip: estante.ip
-                                                },
-                                                almacen: {
-                                                    _id: almacen._id,
-                                                    name: almacen.name,
-                                                    direccion: almacen.direccion
-                                                }
-                                            });
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
+                if(usuario.almacen && usuario.almacen.estantes && usuario.almacen.estantes.length > 0) {
+                    usuario.almacen.estantes.forEach(estante => {
+                        if(estante.dispositivos && estante.dispositivos.length > 0) {
+                            estante.dispositivos.forEach(dispositivo => {
+                                if(dispositivo.material) {
+                                    const material = dispositivo.material;
+                                    todosLosMateriales.push({
+                                        _id: material._id,
+                                        nombre: material.nombre,
+                                        descripcion: material.descripcion,
+                                        cantidad: material.cantidad,
+                                        ubicacion: material.ubicacion,
+                                        movimientos: material.movimientos,
+                                        Timestamp: material.Timestamp,
+                                        // Información de contexto
+                                        dispositivo: {
+                                            _id: dispositivo._id,
+                                            celda: dispositivo.celda
+                                        },
+                                        estante: {
+                                            _id: estante._id,
+                                            nombre: estante.nombre,
+                                            nombreDispositivo: estante.nombreDispositivo,
+                                            ip: estante.ip
+                                        },
+                                        almacen: {
+                                            _id: usuario.almacen._id,
+                                            nombre: usuario.almacen.nombre,
+                                            direccion: usuario.almacen.direccion
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
             });
 
             if(todosLosMateriales.length === 0){
@@ -147,7 +165,7 @@ class MaterialController{
 
             // Buscar usuarios que tengan materiales en dispositivos
             const usuariosConMateriales = await UserModel.find({
-                "almacen.estantes.dispositivos.materiales.name": {
+                "almacen.estantes.dispositivos.material.nombre": {
                     $regex: nombreMaterial, 
                     $options: "i" // Búsqueda insensible a mayúsculas y minúsculas
                 }
@@ -160,50 +178,45 @@ class MaterialController{
             // Extraer todos los materiales que coincidan con el nombre
             let materialesEncontrados = [];
             usuariosConMateriales.forEach(usuario => {
-                usuario.almacen.forEach(almacen => {
-                    if(almacen.estantes && almacen.estantes.length > 0) {
-                        almacen.estantes.forEach(estante => {
-                            if(estante.dispositivos && estante.dispositivos.length > 0) {
-                                estante.dispositivos.forEach(dispositivo => {
-                                    if(dispositivo.materiales && dispositivo.materiales.length > 0) {
-                                        // Filtrar materiales por nombre
-                                        const materialesCoincidentes = dispositivo.materiales.filter(
-                                            material => material.name.toLowerCase().includes(nombreMaterial.toLowerCase())
-                                        );
-                                        
-                                        materialesCoincidentes.forEach(material => {
-                                            materialesEncontrados.push({
-                                                _id: material._id,
-                                                name: material.name,
-                                                description: material.description,
-                                                cantidad: material.cantidad,
-                                                ubicacion: material.ubicacion,
-                                                movimientos: material.movimientos,
-                                                Timestamp: material.Timestamp,
-                                                // Información de contexto
-                                                dispositivo: {
-                                                    _id: dispositivo._id,
-                                                    celda: dispositivo.celda
-                                                },
-                                                estante: {
-                                                    _id: estante._id,
-                                                    name: estante.name,
-                                                    nameDispositivo: estante.nameDispositivo,
-                                                    ip: estante.ip
-                                                },
-                                                almacen: {
-                                                    _id: almacen._id,
-                                                    name: almacen.name,
-                                                    direccion: almacen.direccion
-                                                }
-                                            });
+                if(usuario.almacen && usuario.almacen.estantes && usuario.almacen.estantes.length > 0) {
+                    usuario.almacen.estantes.forEach(estante => {
+                        if(estante.dispositivos && estante.dispositivos.length > 0) {
+                            estante.dispositivos.forEach(dispositivo => {
+                                if(dispositivo.material) {
+                                    const material = dispositivo.material;
+                                    // Verificar si el material coincide con el nombre buscado
+                                    if(material.nombre && material.nombre.toLowerCase().includes(nombreMaterial.toLowerCase())) {
+                                        materialesEncontrados.push({
+                                            _id: material._id,
+                                            nombre: material.nombre,
+                                            descripcion: material.descripcion,
+                                            cantidad: material.cantidad,
+                                            ubicacion: material.ubicacion,
+                                            movimientos: material.movimientos,
+                                            Timestamp: material.Timestamp,
+                                            // Información de contexto
+                                            dispositivo: {
+                                                _id: dispositivo._id,
+                                                celda: dispositivo.celda
+                                            },
+                                            estante: {
+                                                _id: estante._id,
+                                                nombre: estante.nombre,
+                                                nombreDispositivo: estante.nombreDispositivo,
+                                                ip: estante.ip
+                                            },
+                                            almacen: {
+                                                _id: usuario.almacen._id,
+                                                nombre: usuario.almacen.nombre,
+                                                direccion: usuario.almacen.direccion
+                                            }
                                         });
                                     }
-                                });
-                            }
-                        });
-                    }
-                });
+                                }
+                            });
+                        }
+                    });
+                }
             });
 
             if(materialesEncontrados.length === 0){
@@ -223,8 +236,6 @@ class MaterialController{
             res.status(500).json({error:"Error al obtener los materiales", message: err.message})
         }
     }//cierre de la funcion getMaterialByNombre
-
-
 
     async updateMaterialById(req, res){
         try{

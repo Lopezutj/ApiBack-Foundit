@@ -3,11 +3,11 @@ const DispositivoModel = require('./DispositivoModel'); // importar el modelo de
 
 //Schema de Material
 const MaterialSchema =  new mongoose.Schema({
-    name: {
+    nombre: {
         type: String,
         required: true,
     },
-    description: {
+    descripcion: {
         type: String,
         required: true,
     },
