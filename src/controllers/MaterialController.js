@@ -191,11 +191,11 @@ class MaterialController{
                                                     nameDispositivo: estante.nameDispositivo,
                                                     ip: estante.ip
                                                 },
-                                                almacen: {
+                                                /*  almacen: {
                                                     _id: almacen._id,
                                                     name: almacen.name,
                                                     direccion: almacen.direccion
-                                                }
+                                                } */
                                             });
                                         });
                                     }
