@@ -25,6 +25,8 @@ class UserController {
                 usuario: {
                     name: createUser.name,
                     email: createUser.email,
+                    tipo: createUser.tipo,
+                    estado: createUser.estado,
                 }
             });
         } catch (err) {
@@ -48,6 +50,7 @@ class UserController {
                     apellido: user.apellido,
                     email: user.email,
                     tipo: user.tipo,
+                    estado: user.estado,
                     timestamp: user.Timestamp
                 })) // Mapear los usuarios para devolver solo los campos necesarios
 
@@ -83,6 +86,7 @@ class UserController {
                     apellido : user.apellido,
                     email: user.email,
                     tipo: user.tipo,
+                    estado: user.estado,
                     timestamp: user.Timestamp
                 }
             });
@@ -168,7 +172,8 @@ class UserController {
                     _id: deletedUser._id,
                     name: deletedUser.name,
                     email: deletedUser.email,
-                    tipo: deletedUser.tipo
+                    tipo: deletedUser.tipo,
+                    estado: deletedUser.estado,
                 }
             });
 
