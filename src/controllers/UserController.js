@@ -23,6 +23,7 @@ class UserController {
             res.status(201).json({
                 mensaje: "Usuario creado",
                 usuario: {
+                    _id: createUser._id,
                     name: createUser.name,
                     email: createUser.email,
                     tipo: createUser.tipo,
@@ -95,6 +96,39 @@ class UserController {
         }
     }
 
+    async getUserbyId(req, res) {
+        // Validar si el ID del usuario está presente en la solicitud
+        if(!req.params.id) {
+            return res.status(401).json({ error: "ID de usuario no proporcionado" });
+        }
+
+        //console.log("ID del usuario recibido:", req.params.id); // Verificar el ID recibido
+
+        try {
+            const user = await UserModel.findById(req.params.id); // Usar findById() de Mongoose
+            //console.log("Usuario encontrado:", user); // Verificar qué devuelve
+
+            if (!user) {
+                return res.status(404).json({ error: "Usuario no encontrado" });
+            }
+
+            res.status(200).json({
+                mensaje : "Usuario encontrado",
+                usuario: {
+                    _id : user._id,
+                    name : user.name,
+                    apellido : user.apellido,
+                    email: user.email,
+                    tipo: user.tipo,
+                    estado: user.estado,
+                    timestamp: user.Timestamp
+                }
+            });
+        } catch (error) {
+            res.status(400).json({ error: "Error al obtener el usuario", message: error.message });
+        }
+    }
+
     // Actualizar usuario
     async updateUser(req, res) {
         // Validar si el ID del usuario está presente en la solicitud
@@ -111,14 +145,14 @@ class UserController {
 
             //validar si el usuario existe 
             const user = await UserModel.findById(_id);
-            console.log("Usuario encontrado:", user); // Verificar qué devuelve
+            //console.log("Usuario encontrado:", user); // Verificar qué devuelve
 
             if(!user){
                 return res.status(404).json({ error: "Usuario no encontrado" });
             }
 
             //validar si el cuerpo de la solicitud tiene datos
-            if(!req.body.name && !req.body.apellido && !req.body.email && !req.body.tipo) {
+            if(!req.body.name && !req.body.apellido && !req.body.email && !req.body.tipo && !req.body.estado) {
                 return res.status(404).json({ error: "No se proporcionaron datos para actualizar" });
             }
 
@@ -149,6 +183,7 @@ class UserController {
 
             const _id = req.params.id; // Desestructurar el ID del usuario de los parámetros de la solicitud
 
+            
             if(!_id) {
                 return res.status(401).json({ error: "ID de usuario no proporcionado" });
             }
