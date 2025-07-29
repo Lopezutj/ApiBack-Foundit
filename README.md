@@ -1,3 +1,4 @@
+
 # 🔎 FOUND_IT API
 
 Una API RESTful construida con Node.js y Express que facilita la comunicación entre el backend en Laravel y el frontend en Angular, conectando directamente con una base de datos MongoDB.
@@ -40,7 +41,7 @@ A continuación se muestran los endpoints disponibles y ejemplos de cómo intera
 
 ### 🔐 Autenticación
 
-**POST** `http://localhost:3000/login`
+**POST** `http://98.71.33.93:3000/login`
 
 **Descripción:** Para loguear un usuario.
 
@@ -49,7 +50,7 @@ A continuación se muestran los endpoints disponibles y ejemplos de cómo intera
 **Ejemplo de uso:**
 
 ```http
-POST http://localhost:3000/login
+POST http://98.71.33.93:3000/login
 Content-Type: application/json
 
 {
@@ -62,7 +63,7 @@ Content-Type: application/json
 
 ### 👤 Gestión de Usuarios
 
-**POST** `http://localhost:3000/users`
+**POST** `http://98.71.33.93:3000/users`
 
 **Descripción:** Crea nuevos usuarios.
 
@@ -71,7 +72,7 @@ Content-Type: application/json
 **Ejemplo de uso:**
 
 ```http
-POST http://localhost:3000/users
+POST http://98.71.33.93:3000/users
 Content-Type: application/json
 Authorization: Bearer <token>
 
@@ -84,25 +85,25 @@ Authorization: Bearer <token>
 }
 ```
 
-**GET** `http://localhost:3000/users`
+**GET** `http://98.71.33.93:3000/users`
 
 **Descripción:** Obtiene todos los usuarios registrados.
 
 **Permisos:** Solo usuarios tipo admin.
 
-**GET** `http://localhost:3000/users/name/:name`
+**GET** `http://98.71.33.93:3000/users/name/:name`
 
 **Descripción:** Obtiene usuarios por nombre.
 
 **Permisos:** Solo usuarios tipo admin.
 
-**PUT** `http://localhost:3000/users/id/:id`
+**PUT** `http://98.71.33.93:3000/users/id/:id`
 
 **Descripción:** Actualiza la información de un usuario.
 
 **Permisos:** Solo usuarios tipo admin.
 
-**DELETE** `http://localhost:3000/users/id/:id`
+**DELETE** `http://98.71.33.93:3000/users/id/:id`
 
 **Descripción:** Elimina un usuario.
 
@@ -112,7 +113,7 @@ Authorization: Bearer <token>
 
 ### 🏢 Gestión de Almacenes
 
-**POST** `http://localhost:3000/almacenes`
+**POST** `http://98.71.33.93:3000/almacenes`
 
 **Descripción:** Crea un nuevo almacén.
 
@@ -121,7 +122,7 @@ Authorization: Bearer <token>
 **Ejemplo de uso:**
 
 ```http
-POST http://localhost:3000/almacenes
+POST http://98.71.33.93:3000/almacenes
 Content-Type: application/json
 Authorization: Bearer <token>
 
@@ -131,31 +132,37 @@ Authorization: Bearer <token>
 }
 ```
 
-**GET** `http://localhost:3000/almacenes/all`
+**PUT** `http://98.71.33.93:3000/almacenes/id`
+
+**Descripción:** Agrega un almacén a un usuario creado.
+
+**Permisos:** Solo usuarios tipo admin.
+
+**GET** `http://98.71.33.93:3000/almacenes/all`
 
 **Descripción:** Obtiene todos los almacenes.
 
 **Permisos:** Todos los usuarios.
 
-**GET** `http://localhost:3000/almacenes/id/:id`
+**GET** `http://98.71.33.93:3000/almacenes/id/:id`
 
 **Descripción:** Obtiene un almacén por su ID.
 
 **Permisos:** Todos los usuarios.
 
-**GET** `http://localhost:3000/almacenes/name/:name`
+**GET** `http://98.71.33.93:3000/almacenes/name/:name`
 
 **Descripción:** Obtiene almacenes por nombre.
 
 **Permisos:** Todos los usuarios.
 
-**PUT** `http://localhost:3000/almacenes/id/:id`
+**PUT** `http://98.71.33.93:3000/almacenes/id/:id`
 
 **Descripción:** Actualiza la información de un almacén por su ID.
 
 **Permisos:** Solo usuarios tipo admin.
 
-**DELETE** `http://localhost:3000/almacenes/:id`
+**DELETE** `http://98.71.33.93:3000/almacenes/:id`
 
 **Descripción:** Elimina un almacén por su ID.
 
@@ -165,7 +172,7 @@ Authorization: Bearer <token>
 
 ### 🗄️ Gestión de Estantes
 
-**POST** `http://localhost:3000/estantes`
+**POST** `http://98.71.33.93:3000/estantes`
 
 **Descripción:** Crea estantes dentro de los almacenes.
 
@@ -174,7 +181,7 @@ Authorization: Bearer <token>
 **Ejemplo de uso:**
 
 ```http
-POST http://localhost:3000/estantes
+POST http://98.71.33.93:3000/estantes
 Content-Type: application/json
 Authorization: Bearer <token>
 
@@ -186,19 +193,19 @@ Authorization: Bearer <token>
 }
 ```
 
-**GET** `http://localhost:3000/estantes/all`
+**GET** `http://98.71.33.93:3000/estantes/all`
 
 **Descripción:** Obtiene todos los estantes de todos los almacenes.
 
 **Permisos:** Todos los usuarios.
 
-**PUT** `http://localhost:3000/estantes/id/:id`
+**PUT** `http://98.71.33.93:3000/estantes/id/:id`
 
 **Descripción:** Actualiza la información de un estante por su ID.
 
 **Permisos:** Solo usuarios tipo admin.
 
-**DELETE** `http://localhost:3000/estantes/:id`
+**DELETE** `http://98.71.33.93:3000/estantes/:id`
 
 **Descripción:** Elimina un estante por su ID.
 
@@ -208,7 +215,7 @@ Authorization: Bearer <token>
 
 ### 📦 Gestión de Materiales
 
-**POST** `http://localhost:3000/materiales`
+**POST** `http://98.71.33.93:3000/materiales`
 
 **Descripción:** Agrega materiales a un estante específico.
 
@@ -217,7 +224,7 @@ Authorization: Bearer <token>
 **Ejemplo de uso:**
 
 ```http
-POST http://localhost:3000/materiales
+POST http://98.71.33.93:3000/materiales
 Content-Type: application/json
 Authorization: Bearer <token>
 
@@ -233,19 +240,32 @@ Authorization: Bearer <token>
 }
 ```
 
-**GET** `http://localhost:3000/materiales/all`
+**GET** `http://98.71.33.93:3000/materiales/all`
 
 **Descripción:** Obtiene todos los materiales.
 
 **Permisos:** Todos los usuarios.
 
-**PUT** `http://localhost:3000/materiales/id/:id`
+**GET** `http://98.71.33.93:3000/materiales/name/:name`
+
+**Descripción:** Busca materiales por nombre.
+
+**Permisos:** Todos los usuarios.
+
+**Ejemplo de uso:**
+
+```http
+GET http://98.71.33.93:3000/materiales/name/martillo
+Authorization: Bearer <token>
+```
+
+**PUT** `http://98.71.33.93:3000/materiales/id/:id`
 
 **Descripción:** Actualiza la información de un material.
 
 **Permisos:** Todos los usuarios.
 
-**DELETE** `http://localhost:3000/materiales/:id`
+**DELETE** `http://98.71.33.93:3000/materiales/:id`
 
 **Descripción:** Elimina un material.
 
@@ -269,4 +289,4 @@ Authorization: Bearer <token>
 ✅ CRUD de Estantes  
 ✅ CRUD de Materiales  
 ✅ Validaciones de permisos  
-✅ Manejo de errores  
+✅ Manejo de errores

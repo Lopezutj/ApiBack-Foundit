@@ -13,28 +13,28 @@ class AlmacenController{
 
         //obtenemos el usuario que está creando el almacen
         const usuario = req.usuario; // Asumiendo que el middleware de autenticación ha agregado el usuario a la solicitud
+        //obtener el id del parametro
+        const id = req.params.id; // Obtener el ID del usuario desde los parámetros de la solicitud
+        
         // Verificar si el usuario tiene permisos para crear un almacén
         if (usuario.tipo !== 'admin') {
             return res.status(403).json({ error: "No tienes permisos para crear un almacén" });
         }
+
+        if(!id){
+            return res.status(400).json({ error: "ID del usuario requerido" });
+        }
+        
         // Validar los datos del cuerpo de la solicitud
         if (!req.body.direccion || !req.body.name) {
             return res.status(400).json({ error: "Faltan datos requeridos para crear el almacén" });
         }
 
-        
-        console.log('Usuario del token:', usuario); // Ver qué contiene el token
-        console.log('ID del usuario:', usuario._id); // Ver el ID específico
-
-        if(!usuario._id){
-            console.log(usuario);
-            return res.status(400).json({ error: "Usuario no encontrado o no existe" });
-        }
 
         //console.log('Datos del cuerpo de la solicitud:', req.body); // Ver los datos del cuerpo de la solicitud
             // Crear el almacén
             const updateUser = await UserModel.findByIdAndUpdate(
-                usuario._id, // ID del usuario logueado
+                id, // ID del usuario logueado
                 { $push: { almacen: req.body } }, // Agregar el nuevo almacén al array de almacenes del usuario
                 { new: true } // Devolver el documento actualizado
             );
@@ -44,13 +44,60 @@ class AlmacenController{
             res.status(201).json({ 
                 mensaje: "Almacen creado y asociado al usuario", 
                 almacen: newAlmacen,
-                usuarioId: usuario._id
+                usuarioId: updateUser._id
             });
+
         }catch (err){
             res.status(500).json({ error: "Error al crear el almacen", message: err.message });
         }
 
     }// Crear un nuevo almacen  
+
+    async createAlmacenById(req, res) {
+        console.log('Crear almacén por ID del usuario:', req.params.id); // Verificar el ID del usuario recibido
+
+        try{
+            
+            //verificar si el usuario autenticado es admin
+            const usuario = req.usuario; // Obtener el usuario autenticado
+            if (usuario.tipo !== 'admin') {
+                return res.status(403).json({ error: "No tienes permisos para crear un almacén" });
+            }
+            // Validar que se proporcione el ID del usuario
+            if (!req.params.id) {
+                return res.status(400).json({ error: "ID del usuario requerido" });
+            }
+            // Validar datos del cuerpo de la solicitud
+            if (!req.body || !req.body.name || !req.body.direccion) {
+                return res.status(400).json({ error: "Datos para crear el almacén requeridos" });
+            }
+
+            // Buscar el usuario por ID
+            const usuarioEncontrado = await UserModel.findById(req.params.id);
+            if (!usuarioEncontrado) {
+                return res.status(404).json({ error: "Usuario no encontrado" });
+            }
+
+            console.log('Usuario encontrado:', usuarioEncontrado); // Verificar el usuario encontrado
+            
+            //actualizar el usuario con el nuevo almacen
+            const updateUser = await UserModel.findByIdAndUpdate(
+                usuarioEncontrado._id,
+                { $push: { almacen: req.body } },
+                { new: true }
+            );
+            const nuevoAlmacen = updateUser.almacen[updateUser.almacen.length - 1]; // Obtener el último almacén agregado
+
+            res.status(201).json({
+                mensaje: "Almacén creado y asociado al usuario",
+                almacen: nuevoAlmacen,
+                usuarioId: usuarioEncontrado._id
+            });
+        }catch(err){
+            res.status(400).json({ error: "Error al crear el almacen por ID", message: err.message });
+        }
+    }
+
     
     async getALmacenAll(req,res){
 
