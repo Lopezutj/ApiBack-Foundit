@@ -5,6 +5,7 @@
         "email": "email",
         "password": "516168959",
         "tipo": "admin",
+        "estado": true,
         "almacen": {
             "nombre": "Almacen 1",
             "direccion": "Gudalajara 123",

@@ -22,11 +22,16 @@ const UsuarioSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
+        minlength: 8 // establecer una longitud mínima para la contraseña
     },
     tipo: { 
         type: String,
         enum: ['admin', 'operador'],
         required: true 
+    },
+    estado: {
+        type: Boolean,
+        default: true
     },
     Timestamp:{
         type: Date,
