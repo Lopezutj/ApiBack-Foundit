@@ -17,8 +17,8 @@ class EstanteController{
         }
 
         //validamos los datos del cuerpo de la solicitud
-        if(!req.body.name || !req.body.nameDispositivo || !req.body.ip || !req.body.almacenId){
-            return res.status(400).json({error: "Faltan datos requeridos para crear el estante (name, nameDispositivo, ip, almacenId)"});
+        if(!req.body.nombre || !req.body.nombreDispositivo || !req.body.ip || !req.body.almacenId){
+            return res.status(400).json({error: "Faltan datos requeridos para crear el estante (nombre, nombreDispositivo, ip, almacenId)"});
         }
 
         //validamos id del usuario
@@ -38,22 +38,18 @@ class EstanteController{
                 return res.status(404).json({ error: "Almacén no encontrado o no pertenece al usuario" });
             }
 
-            // Encontrar el índice del almacén
-            const almacenIndex = usuarioConAlmacen.almacen.findIndex(
-                almacen => almacen._id.toString() === req.body.almacenId
-            );
-
-            if (almacenIndex === -1) {
+            // Verificar que el almacén existe y coincide con el ID
+            if (!usuarioConAlmacen.almacen || usuarioConAlmacen.almacen._id.toString() !== req.body.almacenId) {
                 return res.status(404).json({ error: "Almacén no encontrado" });
             }
 
             // Crear objeto estante sin el almacenId
             const { almacenId, ...estanteData } = req.body;
 
-            // Agregar el estante al almacén específico
+            // Agregar el estante al almacén (objeto único)
             const updateEstante = await UserModel.findByIdAndUpdate(
                 usuario._id,
-                { $push: { [`almacen.${almacenIndex}.estantes`]: estanteData } },
+                { $push: { "almacen.estantes": estanteData } },
                 { new: true }
             );
 
@@ -61,7 +57,7 @@ class EstanteController{
                 return res.status(404).json({ error: "Error al agregar el estante" });
             }
 
-            const almacenActualizado = updateEstante.almacen[almacenIndex];
+            const almacenActualizado = updateEstante.almacen;
             const newEstante = almacenActualizado.estantes[almacenActualizado.estantes.length - 1];
 
             res.status(201).json({
@@ -91,22 +87,20 @@ class EstanteController{
             // Extraer todos los estantes de todos los almacenes
             let todosLosEstantes = []; //inicializar el array
             usuariosConEstantes.forEach(usuario => { //recorremos los usuarios que tienen almacenes
-                usuario.almacen.forEach(almacen => { //recorremos los almacenes de cada usuario
-                    if(almacen.estantes && almacen.estantes.length > 0) { //validar si hay estantes en el almacén
-                        almacen.estantes.forEach(estante => { //recorremos los estantes del almacén
-                            todosLosEstantes.push({ // Agregar el estante al array
-                                _id: estante._id,
-                                name: estante.name,
-                                nameDispositivo: estante.nameDispositivo,
-                                ip: estante.ip,
-                                Timestamp: estante.Timestamp,
-                                almacenId: almacen._id,
-                                almacenName: almacen.name,
-                                dispositivo: estante.dispositivo || []
-                            });
+                if(usuario.almacen && usuario.almacen.estantes && usuario.almacen.estantes.length > 0) { //validar si hay estantes en el almacén
+                    usuario.almacen.estantes.forEach(estante => { //recorremos los estantes del almacén
+                        todosLosEstantes.push({ // Agregar el estante al array
+                            _id: estante._id,
+                            nombre: estante.nombre,
+                            nombreDispositivo: estante.nombreDispositivo,
+                            ip: estante.ip,
+                            Timestamp: estante.Timestamp,
+                            almacenId: usuario.almacen._id,
+                            almacenName: usuario.almacen.nombre,
+                            dispositivos: estante.dispositivos || []
                         });
-                    }
-                });
+                    });
+                }
             });
 
             if(todosLosEstantes.length === 0){

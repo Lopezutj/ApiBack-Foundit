@@ -37,7 +37,7 @@ const UsuarioSchema = new mongoose.Schema({
         type: Date,
         default: Date.now, // Establecer la fecha y hora actual como valor por defecto
     },
-    almacen:[AlmacenModel.schema], // Relación con el modelo Almacen ñ
+    almacen: AlmacenModel.schema // subdocumento de almacen embebido en el usuario
 });
 
 //Milware para hashear la contraseña antes de guardar el usuario

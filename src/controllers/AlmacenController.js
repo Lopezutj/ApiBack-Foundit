@@ -13,8 +13,8 @@ class AlmacenController{
 
         //obtenemos el usuario que está creando el almacen
         const usuario = req.usuario; // Asumiendo que el middleware de autenticación ha agregado el usuario a la solicitud
-        //obtener el id del parametro
-        const id = req.params.id; // Obtener el ID del usuario desde los parámetros de la solicitud
+
+        const id = usuario._id; // Obtener el ID del usuario autenticado
         
         // Verificar si el usuario tiene permisos para crear un almacén
         if (usuario.tipo !== 'admin') {
@@ -39,7 +39,12 @@ class AlmacenController{
                 { new: true } // Devolver el documento actualizado
             );
             
-            const newAlmacen = updateUser.almacen[updateUser.almacen.length - 1]; // Obtener el último almacén agregado}
+            // Verificar que el almacén se creó correctamente
+            if (!updateUser.almacen) {
+                return res.status(500).json({ error: "Error al crear el almacén" });
+            }
+            
+            const newAlmacen = updateUser.almacen; // Obtener el almacén creado
             
             res.status(201).json({ 
                 mensaje: "Almacen creado y asociado al usuario", 
@@ -104,14 +109,16 @@ class AlmacenController{
         try{
             
             const usuariosConAlmacenes = await UserModel.find({
-                'almacen.0': {
+                'almacen': {
                     $exists: true 
                     } 
             }, 'almacen'); // Obtener usuarios que tienen almacenes
 
             let todosLosAlmacenes = []; // Inicializar un array para almacenar todos los almacenes
             usuariosConAlmacenes.forEach(usuario =>{
-                todosLosAlmacenes = todosLosAlmacenes.concat(usuario.almacen); // Concatenar los almacenes de cada usuario al array
+                if (usuario.almacen) {
+                    todosLosAlmacenes.push(usuario.almacen); // Agregar el almacén de cada usuario al array
+                }
             });
 
             if(!todosLosAlmacenes || todosLosAlmacenes.length === 0){
@@ -158,10 +165,9 @@ class AlmacenController{
             //extraer los almacenes de los usuarios
             let almacenesEncontrados = [];
             usuarios.forEach(usuario => { //recorrer cada usuario
-                const almacenesCoincidentes = usuario.almacen.filter(
-                    almacen => almacen.name.toLowerCase().includes(nombreAlmacen.toLowerCase()) // Filtrar almacenes por nombre
-                );
-                almacenesEncontrados = almacenesEncontrados.concat(almacenesCoincidentes); // Concatenar los almacenes encontrados
+                if (usuario.almacen && usuario.almacen.name.toLowerCase().includes(nombreAlmacen.toLowerCase())) {
+                    almacenesEncontrados.push(usuario.almacen); // Agregar el almacén si coincide
+                }
             });
 
             if (almacenesEncontrados.length === 0) {
@@ -284,10 +290,10 @@ class AlmacenController{
                 return res.status(404).json({ error: "Almacén no encontrado" });
             }
 
-            // Eliminar el almacén del array embebido usando $pull
+            // Eliminar el almacén embebido usando $unset
             const resultado = await UserModel.findByIdAndUpdate(
                 usuarioConAlmacen._id,
-                { $pull: { almacen: { _id: _id } } }, // Eliminar el almacén con el ID especificado
+                { $unset: { almacen: "" } }, // Eliminar el almacén embebido
                 { new: true }
             );
 
