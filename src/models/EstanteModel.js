@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const DispositivoModel = require('./DispositivoModel'); // Importar el modelo de Dispositivo
 
 const EstanteSchema = new mongoose.Schema({
-    name:{ //nombre del estante
+    nombre:{ //nombre del estante
         type: String,
         required: true,
     },
