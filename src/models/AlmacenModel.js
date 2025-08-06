@@ -4,7 +4,7 @@ const MaterialModel = require('./MaterialModel'); // importar el modelo de Mater
 
 
 const AlmacenSchema = new mongoose.Schema({
-    name: {
+    nombre: {
         type: String,
         required: true,
     },
@@ -16,7 +16,7 @@ const AlmacenSchema = new mongoose.Schema({
         type: Date,
         default: Date.now, // Establecer la fecha y hora actual como valor por defecto
     },
-    estantes: [EstanteModel.schema], // Usar el esquema del modelo Estante
+    estantes: [EstanteModel.schema], // Array de estantes embebidos
     
 });
 

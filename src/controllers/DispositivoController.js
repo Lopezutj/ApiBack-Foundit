@@ -18,33 +18,59 @@ class DispositivoController{
         console.log('Cuerpo de la solicitud:', req.body); // Ver qué datos se están enviando en la solicitud
 
         //validamos los datos que vienen en el cuerpo de la solicitud
-        if(!req.body.celda || !req.body.materiales){
-            return res.status(401).json({error: "Faltan datos requeridos para crear el dispositivo"});
+        if(!req.body.celda || !req.body.material){
+            return res.status(401).json({error: "Faltan datos requeridos para crear el dispositivo (celda, material)"});
         }
 
         //creamos el dispositivo y agregamos el material 
         try{
             
-            //agregamos una celda al dispositivo
-        const updateDispositivo = await UserModel.findByIdAndUpdate(
-                usuario._id, // ID del usuario al que se le agregará el dispositivo 
-                { $push: {
-                    "almacen.0.estantes.0.dispositivos":{
-                        celda: req.body.celda, // Agregar la celda del dispositivo
-                        materiales: req.body.materiales // Agregar los materiales del dispositivo
-                    } 
-                }}, // Agregar el nuevo dispositivo al array de dispositivos del usuario
-                { new: true } // Devolver el documento actualizado
-        );
+            // Necesitamos el almacenId y estanteId para agregar el dispositivo
+            if(!req.body.almacenId || !req.body.estanteId){
+                return res.status(400).json({error: "Faltan almacenId y estanteId para crear el dispositivo"});
+            }
 
-        if(!updateDispositivo.almacen[0].estantes[0].dispositivos){
-            return res.status(404).json({error: "Error al agregar el material al dispositivo"});
-        
-        }
+            // Buscar el usuario que contiene el almacén y estante
+            const usuarioConAlmacen = await UserModel.findOne({
+                _id: usuario._id,
+                "almacen._id": req.body.almacenId
+            });
 
-        const dispositivos = updateDispositivo.almacen[0].estantes[0].dispositivos; //accedemos al array de dispositivos
-        const newDispositivo = dispositivos[dispositivos.length - 1]; // Obtener el último dispositivo agregado
-        const newMaterial = newDispositivo.materiales; // obtener los materiales del dispositivo
+            if (!usuarioConAlmacen) {
+                return res.status(404).json({ error: "Almacén no encontrado o no pertenece al usuario" });
+            }
+
+            // Verificar que el estante existe
+            const estante = usuarioConAlmacen.almacen.estantes.find(
+                estante => estante._id.toString() === req.body.estanteId
+            );
+
+            if (!estante) {
+                return res.status(404).json({ error: "Estante no encontrado" });
+            }
+
+            // Agregar el dispositivo al estante específico
+            const updateDispositivo = await UserModel.findByIdAndUpdate(
+                usuario._id,
+                { $push: { "almacen.estantes.$[estante].dispositivos": {
+                    celda: req.body.celda,
+                    material: req.body.material
+                }}},
+                { 
+                    arrayFilters: [{ "estante._id": req.body.estanteId }],
+                    new: true 
+                }
+            );
+
+            if(!updateDispositivo.almacen.estantes){
+                return res.status(404).json({error: "Error al agregar el dispositivo"});
+            }
+
+            const estanteActualizado = updateDispositivo.almacen.estantes.find(
+                estante => estante._id.toString() === req.body.estanteId
+            );
+            const newDispositivo = estanteActualizado.dispositivos[estanteActualizado.dispositivos.length - 1];
+            const newMaterial = newDispositivo.material;
 
         res.status(201).json({
             mensaje: "Dispositivo y material creados y asociados al usuario",

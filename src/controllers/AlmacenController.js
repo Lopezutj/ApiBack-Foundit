@@ -108,9 +108,11 @@ class AlmacenController{
     }
 
     
+
     async getAlmacenAll(req, res) {
     try {
         const usuario = req.usuario; // Usuario autenticado
+
 
         if (usuario.tipo !== 'admin') {
             return res.status(403).json({ error: "No tienes permisos para ver los almacenes" });
@@ -198,10 +200,9 @@ class AlmacenController{
             //extraer los almacenes de los usuarios
             let almacenesEncontrados = [];
             usuarios.forEach(usuario => { //recorrer cada usuario
-                const almacenesCoincidentes = usuario.almacen.filter(
-                    almacen => almacen.name.toLowerCase().includes(nombreAlmacen.toLowerCase()) // Filtrar almacenes por nombre
-                );
-                almacenesEncontrados = almacenesEncontrados.concat(almacenesCoincidentes); // Concatenar los almacenes encontrados
+                if (usuario.almacen && usuario.almacen.name.toLowerCase().includes(nombreAlmacen.toLowerCase())) {
+                    almacenesEncontrados.push(usuario.almacen); // Agregar el almacén si coincide
+                }
             });
 
             if (almacenesEncontrados.length === 0) {
@@ -324,10 +325,10 @@ class AlmacenController{
                 return res.status(404).json({ error: "Almacén no encontrado" });
             }
 
-            // Eliminar el almacén del array embebido usando $pull
+            // Eliminar el almacén embebido usando $unset
             const resultado = await UserModel.findByIdAndUpdate(
                 usuarioConAlmacen._id,
-                { $pull: { almacen: { _id: _id } } }, // Eliminar el almacén con el ID especificado
+                { $unset: { almacen: "" } }, // Eliminar el almacén embebido
                 { new: true }
             );
 

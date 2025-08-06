@@ -74,7 +74,7 @@ class LoginController {
 
                 // Token válido, verificar si el usuario aún existe en la base de datos
                 try {
-                    const user = await UserModel.findById(decoded.id);
+                    const user = await UserModel.findById(decoded._id);
                     
                     if (!user) {
                         return res.status(401).json({ 
@@ -91,7 +91,8 @@ class LoginController {
                         user: {
                             id: user._id,
                             email: user.email,
-                            name: user.name, // Usar 'nombre' según tu modelo
+                            name: user.name, // Usar 'name' según el modelo
+                            
                             tipo: user.tipo
                         }
                     });
