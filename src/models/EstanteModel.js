@@ -6,7 +6,7 @@ const EstanteSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    nombreDispositivo: { //nombre del dispositivo asociado al estante
+    nameDispositivo: { //nombre del dispositivo asociado al estante
         type: String,
         required: true,
     },

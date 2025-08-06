@@ -9,66 +9,55 @@ class EstanteController{
     async create(req,res){
 
         //obtenemos el usuario que está creando el estante
-        let usuario = req.usuario; // Asumiendo que el middleware de autenticación ha agregado el usuario a la solicitud
+        let usuarioToken = req.usuario; // usuario autenticado por token
+        let usuarioId = req.params.id; // id del usuario en la URL
 
-        //verificar si el usuario tiene permisos para crear un estante
-        if(usuario.tipo !== 'admin'){
+        //verificar si el usuario autenticado es admin
+        if(usuarioToken.tipo !== 'admin'){
             return res.status(403).json({error: "No tienes permisos para crear un estante"});
         }
 
-        //validamos los datos del cuerpo de la solicitud
-        if(!req.body.nombre || !req.body.nombreDispositivo || !req.body.ip || !req.body.almacenId){
-            return res.status(400).json({error: "Faltan datos requeridos para crear el estante (nombre, nombreDispositivo, ip, almacenId)"});
+        //validar datos del body
+        if(!req.body.nombre || !req.body.nameDispositivo || !req.body.ip || !req.body.almacenId){
+            return res.status(400).json({error: "Faltan datos requeridos para crear el estante (nombre, nameDispositivo, ip, almacenId)"});
         }
 
-        //validamos id del usuario
-        if(!usuario._id){
-            return res.status(401).json({error: "Usuario no entrado o no existe"});
+        //validar id del usuario de la URL
+        if(!usuarioId){
+            return res.status(400).json({error: "ID de usuario requerido en la URL"});
         }
 
-        //creamos el estante 
         try {
-            // Buscar el usuario que contiene el almacén
-            const usuarioConAlmacen = await UserModel.findOne({
-                _id: usuario._id,
-                "almacen._id": req.body.almacenId
-            });
-
+            // Buscar el usuario por el id de la URL
+            const usuarioConAlmacen = await UserModel.findById(usuarioId);
             if (!usuarioConAlmacen) {
-                return res.status(404).json({ error: "Almacén no encontrado o no pertenece al usuario" });
+                return res.status(404).json({ error: "Usuario no encontrado" });
             }
-
-            // Encontrar el índice del almacén
+            // Buscar el almacén dentro del usuario
             const almacenIndex = usuarioConAlmacen.almacen.findIndex(
                 almacen => almacen._id.toString() === req.body.almacenId
             );
-
             if (almacenIndex === -1) {
-                return res.status(404).json({ error: "Almacén no encontrado" });
+                return res.status(404).json({ error: "Almacén no encontrado para este usuario" });
             }
-
             // Crear objeto estante sin el almacenId
             const { almacenId, ...estanteData } = req.body;
-
             // Agregar el estante al almacén específico
             const updateEstante = await UserModel.findByIdAndUpdate(
-                usuario._id,
-                { $push: { "almacen.estantes": estanteData } },
+                usuarioId,
+                { $push: { [`almacen.${almacenIndex}.estantes`]: estanteData } },
                 { new: true }
             );
-
             if (!updateEstante) {
                 return res.status(404).json({ error: "Error al agregar el estante" });
             }
-
             const almacenActualizado = updateEstante.almacen[almacenIndex];
             const newEstante = almacenActualizado.estantes[almacenActualizado.estantes.length - 1];
-
             res.status(201).json({
                 mensaje: "Estante creado y asociado al almacén",
                 estante: newEstante,
                 almacenId: req.body.almacenId,
-                usuarioId: usuario._id
+                usuarioId: usuarioId
             });
         } catch (err) {
             res.status(500).json({ error: "Error al crear el estante", message: err.message });
