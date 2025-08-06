@@ -6,16 +6,14 @@ const UserModel = require('../models/UserModel');
 class AlmacenController{
     constructor(){}// Constructor vacío para la clase AlmacenController como POO
 
-    // funcion del tipo POST para crear un nuevo almacen del usuario autenticado
+    // funcion del tipo POST para crear un nuevo almacen
     async create(req,res){
 
         try{
 
-            //console.log('Datos del cuerpo de la solicitud:', req.body); // Ver los datos del cuerpo de la solicitud
-
         //obtenemos el usuario que está creando el almacen
         const usuario = req.usuario; // Asumiendo que el middleware de autenticación ha agregado el usuario a la solicitud
-    
+
         const id = usuario._id; // Obtener el ID del usuario autenticado
         
         // Verificar si el usuario tiene permisos para crear un almacén
@@ -40,18 +38,18 @@ class AlmacenController{
                 { $push: { almacen: req.body } }, // Agregar el nuevo almacén al array de almacenes del usuario
                 { new: true } // Devolver el documento actualizado
             );
-
-            if (!updateUser) {
-                return res.status(404).json({ error: "Usuario no encontrado" });
+            
+            // Verificar que el almacén se creó correctamente
+            if (!updateUser.almacen) {
+                return res.status(500).json({ error: "Error al crear el almacén" });
             }
-
-            const newAlmacen = updateUser.almacen[updateUser.almacen.length - 1]; // Obtener el último almacén agregado
-
-            res.status(201).json({
-                mensaje: "Almacen creado y asociado al usuario",
+            
+            const newAlmacen = updateUser.almacen; // Obtener el almacén creado
+            
+            res.status(201).json({ 
+                mensaje: "Almacen creado y asociado al usuario", 
                 almacen: newAlmacen,
-                usuarioId: updateUser._id,
-                _id: newAlmacen._id // Devolver el ID del nuevo almacén
+                usuarioId: updateUser._id
             });
 
         }catch (err){
@@ -60,7 +58,6 @@ class AlmacenController{
 
     }// Crear un nuevo almacen  
 
-    //funcion del tipo get para obtener un almacen por ID
     async createAlmacenById(req, res) {
         console.log('Crear almacén por ID del usuario:', req.params.id); // Verificar el ID del usuario recibido
 
@@ -99,8 +96,7 @@ class AlmacenController{
             res.status(201).json({
                 mensaje: "Almacén creado y asociado al usuario",
                 almacen: nuevoAlmacen,
-                usuarioId: usuarioEncontrado._id,
-                _id: nuevoAlmacen._id // Devolver el ID del nuevo almacén
+                usuarioId: usuarioEncontrado._id
             });
         }catch(err){
             res.status(400).json({ error: "Error al crear el almacen por ID", message: err.message });
@@ -108,74 +104,43 @@ class AlmacenController{
     }
 
     
+    async getALmacenAll(req,res){
 
-    async getAlmacenAll(req, res) {
-    try {
-        const usuario = req.usuario; // Usuario autenticado
+        try{
+            
+            const usuariosConAlmacenes = await UserModel.find({
+                'almacen': {
+                    $exists: true 
+                    } 
+            }, 'almacen'); // Obtener usuarios que tienen almacenes
 
+            let todosLosAlmacenes = []; // Inicializar un array para almacenar todos los almacenes
+            usuariosConAlmacenes.forEach(usuario =>{
+                if (usuario.almacen) {
+                    todosLosAlmacenes.push(usuario.almacen); // Agregar el almacén de cada usuario al array
+                }
+            });
 
-        if (usuario.tipo !== 'admin') {
-            return res.status(403).json({ error: "No tienes permisos para ver los almacenes" });
-        }
-
-        // Buscar todos los almacenes del usuario autenticado
-        const usuariosConAlmacenes = await UserModel.find({
-            _id: usuario._id,
-            'almacen.0': { $exists: true }
-        }, 'almacen');
-
-        let todosLosAlmacenes = [];
-        usuariosConAlmacenes.forEach(usuario => {
-            todosLosAlmacenes = todosLosAlmacenes.concat(usuario.almacen);
-        });
-
-        if (!todosLosAlmacenes || todosLosAlmacenes.length === 0) {
-            return res.status(404).json({ error: "No se encontraron almacenes" });
-        }
-
-        // Obtener todos los operadores con sus almacenes y nombre
-        const operadores = await UserModel.find(
-            { tipo: 'operador', 'almacen.0': { $exists: true } },
-            'almacen name'
-        );
-
-        // Mapeo para asociar trabajadores a cada almacén (clave normalizada)
-        const trabajadoresPorAlmacen = {};
-        operadores.forEach(usuario => {
-            if (Array.isArray(usuario.almacen)) {
-                usuario.almacen.forEach(almacen => {
-                    const nombre = (almacen.name || almacen.nombre || '').toLowerCase().trim();
-                    if (nombre) {
-                        if (!trabajadoresPorAlmacen[nombre]) {
-                            trabajadoresPorAlmacen[nombre] = [];
-                        }
-                        trabajadoresPorAlmacen[nombre].push(usuario.name);
-                    }
-                });
+            if(!todosLosAlmacenes || todosLosAlmacenes.length === 0){
+                return res.status(404).json({ error: "No se encontraron almacenes" });
             }
-        });
-        console.log('Todos los almacenes:', todosLosAlmacenes); // Verificar los almacenes encontrados
-        //console.log('Trabajadores por almacén:', trabajadoresPorAlmacen); // Verificar el mapeo de trabajadores
 
-        res.status(200).json({
-            mensaje: "Almacenes encontrados",
-            almacenes: todosLosAlmacenes.map(almacen => ({
-                _id: almacen._id,
-                name: almacen.name || almacen.nombre,
-                direccion: almacen.direccion,
-                Timestamp: almacen.Timestamp,
-                estantes: almacen.estantes || [] // <-- Aquí agregas los estantes
-            })),
-            total: todosLosAlmacenes.length,
-            trabajadoresPorAlmacen
-        });
+            res.status(200).json({
+                mensaje: "Almacenes encontrados",
+                almacenes: todosLosAlmacenes.map(almacen => ({ //mapear los almacenes para devolver solo los campos necesarios
+                    _id: almacen._id,
+                    name: almacen.name,
+                    direccion: almacen.direccion,
+                    Timestamp: almacen.Timestamp
+                })),
+                total: todosLosAlmacenes.length //total en numeros
+            });
 
-    } catch (err) {
-        res.status(400).json({ error: "Error al obtener los almacenes", message: err.message });
+        }catch(err){
+            res.status(400).json({ error: "Error al obtener los almacenes", message: err.message });
+
+        }
     }
-}
-
-    
     //funcion del tipo get para filtrar un almacen por nombres
     async getAlmacenName(req, res){
 

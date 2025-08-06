@@ -6,7 +6,7 @@ const autentificaJWT = require('../../middleware/auntentificaJWT'); // Importar 
 // Rutas para el controlador de Almacen
 router.post('/',autentificaJWT, AlmacenController.create); // Crear un nuevo almacén (requiere autenticación) solo admin
 router.put('/:id', autentificaJWT, AlmacenController.createAlmacenById); // Crear un almacén por el id del usuario (requiere autenticación) solo admin
-router.get('/all',autentificaJWT,AlmacenController.getAlmacenAll); // Obtener todos los almacenes 
+router.get('/all',autentificaJWT,AlmacenController.getALmacenAll); // Obtener todos los almacenes 
 router.get('/name/:name', autentificaJWT, AlmacenController.getAlmacenName); // Obtener un almacén por name
 router.put('/id/:id', autentificaJWT, AlmacenController.updateAlmacenById); // Actualizar un almacén por ID solo admin
 router.delete('/id/:id', autentificaJWT, AlmacenController.deleteAlmacenById); // Eliminar un almacén por ID  solo admin

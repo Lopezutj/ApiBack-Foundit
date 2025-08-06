@@ -134,7 +134,7 @@ class MaterialController{
 
             console.log('Nombre del material a buscar:', nombreMaterial);
             console.log('Parámetros de ruta:', req.params);
-            //console.log('Query parameters:', req.query);
+            console.log('Query parameters:', req.query);
 
             if(!nombreMaterial){
                 return res.status(400).json({error:"Nombre del material requerido"});
@@ -187,15 +187,15 @@ class MaterialController{
                                                 },
                                                 estante: {
                                                     _id: estante._id,
-                                                    name: estante.nombre,
+                                                    name: estante.name,
                                                     nameDispositivo: estante.nameDispositivo,
                                                     ip: estante.ip
                                                 },
-                                                almacen: {
+                                                /*  almacen: {
                                                     _id: almacen._id,
                                                     name: almacen.name,
                                                     direccion: almacen.direccion
-                                                }
+                                                } */
                                             });
                                         });
                                     }
