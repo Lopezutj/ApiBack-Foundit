@@ -91,8 +91,7 @@ class LoginController {
                         user: {
                             id: user._id,
                             email: user.email,
-                            name: user.name, // Usar 'name' según el modelo
-                            
+                            name: user.name, // Usar 'nombre' según tu modelo
                             tipo: user.tipo
                         }
                     });
