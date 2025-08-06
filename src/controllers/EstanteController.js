@@ -8,8 +8,11 @@ class EstanteController{
     //funcion del tipo POST para crear un nuevo estante
     async create(req,res){
 
+        console.log('Cuerpo de la solicitud para estante:', req.body);
+
         //obtenemos el usuario que está creando el estante
         let usuario = req.usuario; // Asumiendo que el middleware de autenticación ha agregado el usuario a la solicitud
+        let id = req.params.id; // ID del usuario
 
         //verificar si el usuario tiene permisos para crear un estante
         if(usuario.tipo !== 'admin'){
@@ -17,25 +20,21 @@ class EstanteController{
         }
 
         //validamos los datos del cuerpo de la solicitud
-        if(!req.body.nombre || !req.body.nombreDispositivo || !req.body.ip || !req.body.almacenId){
-            return res.status(400).json({error: "Faltan datos requeridos para crear el estante (nombre, nombreDispositivo, ip, almacenId)"});
+        if(!req.body.nombre || !req.body.nameDispositivo || !req.body.ip || !req.body.almacenId){
+            return res.status(400).json({error: "Faltan datos requeridos para crear el estante (name, nameDispositivo, ip, almacenId)"});
         }
 
-        //validamos id del usuario
-        if(!usuario._id){
-            return res.status(401).json({error: "Usuario no entrado o no existe"});
-        }
 
         //creamos el estante 
         try {
             // Buscar el usuario que contiene el almacén
             const usuarioConAlmacen = await UserModel.findOne({
-                _id: usuario._id,
+                _id: id, //id del usuario a buscar
                 "almacen._id": req.body.almacenId
             });
 
             if (!usuarioConAlmacen) {
-                return res.status(404).json({ error: "Almacén no encontrado o no pertenece al usuario" });
+                return res.status(404).json({ error: "Almacén no encontrado o no pertenece al usuario operador" });
             }
 
             // Verificar que el almacén existe y coincide con el ID
@@ -48,8 +47,9 @@ class EstanteController{
 
             // Agregar el estante al almacén (objeto único)
             const updateEstante = await UserModel.findByIdAndUpdate(
-                usuario._id,
-                { $push: { "almacen.estantes": estanteData } },
+                //usuario._id,
+                id, //usar le id del usuario operador
+                { $push: { [`almacen.${almacenIndex}.estantes`]: estanteData } },
                 { new: true }
             );
 
@@ -59,6 +59,9 @@ class EstanteController{
 
             const almacenActualizado = updateEstante.almacen;
             const newEstante = almacenActualizado.estantes[almacenActualizado.estantes.length - 1];
+
+            console.log('Respuesta del crear estante:', newEstante); // Verificar el nuevo estante creado
+            console.log('Id del estante creado:', newEstante._id); // Verificar el ID del nuevo estante
 
             res.status(201).json({
                 mensaje: "Estante creado y asociado al almacén",

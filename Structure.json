@@ -12,7 +12,7 @@
             "estantes": [
                 {
                     "nombre": "Estante 1",
-                    "nombreDispositivo": "dispositivo1",
+                    "nameDispositivo": "dispositivo1",
                     "ip": "192.168.43.2",
                     "Dispositivo": [
                         {
