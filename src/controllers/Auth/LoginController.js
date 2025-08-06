@@ -29,14 +29,12 @@ class LoginController {
                     return res.status(422).json({ error: "Contraseña y/o incorrecta" });
                 }
 
-                
             res.status(200).json({ 
                 mensaje: "Inicio de sesión exitoso",
                 token: user.generarAuthToken(), // Generar el token de autenticación
                 user: {
                     id: user._id,
                     name: user.name,
-                    apellido: user.apellido,
                     email: user.email,
                     tipo: user.tipo,
                 }
@@ -81,9 +79,7 @@ class LoginController {
                             valid: false, 
                             error: 'Usuario no encontrado' 
                         });
-                    }   
-
-                    
+                    }
 
                     // Respuesta exitosa
                     res.status(200).json({
@@ -91,7 +87,7 @@ class LoginController {
                         user: {
                             id: user._id,
                             email: user.email,
-                            name: user.name, // Usar 'nombre' según tu modelo
+                            name: user.name, // Usar 'name' según el modelo
                             tipo: user.tipo
                         }
                     });

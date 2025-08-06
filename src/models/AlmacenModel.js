@@ -4,7 +4,7 @@ const MaterialModel = require('./MaterialModel'); // importar el modelo de Mater
 
 
 const AlmacenSchema = new mongoose.Schema({
-    nombre: {
+    name: {
         type: String,
         required: true,
     },

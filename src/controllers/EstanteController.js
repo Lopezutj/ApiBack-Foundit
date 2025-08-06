@@ -8,66 +8,56 @@ class EstanteController{
     //funcion del tipo POST para crear un nuevo estante
     async create(req,res){
 
-        console.log('Cuerpo de la solicitud para estante:', req.body);
-
         //obtenemos el usuario que está creando el estante
-        let usuario = req.usuario; // Asumiendo que el middleware de autenticación ha agregado el usuario a la solicitud
-        let id = req.params.id; // ID del usuario
+        let usuarioToken = req.usuario; // usuario autenticado por token
+        let usuarioId = req.params.id; // id del usuario en la URL
 
-        //verificar si el usuario tiene permisos para crear un estante
-        if(usuario.tipo !== 'admin'){
+        //verificar si el usuario autenticado es admin
+        if(usuarioToken.tipo !== 'admin'){
             return res.status(403).json({error: "No tienes permisos para crear un estante"});
         }
 
-        //validamos los datos del cuerpo de la solicitud
+        //validar datos del body
         if(!req.body.nombre || !req.body.nameDispositivo || !req.body.ip || !req.body.almacenId){
-            return res.status(400).json({error: "Faltan datos requeridos para crear el estante (name, nameDispositivo, ip, almacenId)"});
+            return res.status(400).json({error: "Faltan datos requeridos para crear el estante (nombre, nameDispositivo, ip, almacenId)"});
         }
 
+        //validar id del usuario de la URL
+        if(!usuarioId){
+            return res.status(400).json({error: "ID de usuario requerido en la URL"});
+        }
 
-        //creamos el estante 
         try {
-            // Buscar el usuario que contiene el almacén
-            const usuarioConAlmacen = await UserModel.findOne({
-                _id: id, //id del usuario a buscar
-                "almacen._id": req.body.almacenId
-            });
-
+            // Buscar el usuario por el id de la URL
+            const usuarioConAlmacen = await UserModel.findById(usuarioId);
             if (!usuarioConAlmacen) {
-                return res.status(404).json({ error: "Almacén no encontrado o no pertenece al usuario operador" });
+                return res.status(404).json({ error: "Usuario no encontrado" });
             }
-
-            // Verificar que el almacén existe y coincide con el ID
-            if (!usuarioConAlmacen.almacen || usuarioConAlmacen.almacen._id.toString() !== req.body.almacenId) {
-                return res.status(404).json({ error: "Almacén no encontrado" });
+            // Buscar el almacén dentro del usuario
+            const almacenIndex = usuarioConAlmacen.almacen.findIndex(
+                almacen => almacen._id.toString() === req.body.almacenId
+            );
+            if (almacenIndex === -1) {
+                return res.status(404).json({ error: "Almacén no encontrado para este usuario" });
             }
-
             // Crear objeto estante sin el almacenId
             const { almacenId, ...estanteData } = req.body;
-
-            // Agregar el estante al almacén (objeto único)
+            // Agregar el estante al almacén específico
             const updateEstante = await UserModel.findByIdAndUpdate(
-                //usuario._id,
-                id, //usar le id del usuario operador
+                usuarioId,
                 { $push: { [`almacen.${almacenIndex}.estantes`]: estanteData } },
                 { new: true }
             );
-
             if (!updateEstante) {
                 return res.status(404).json({ error: "Error al agregar el estante" });
             }
-
-            const almacenActualizado = updateEstante.almacen;
+            const almacenActualizado = updateEstante.almacen[almacenIndex];
             const newEstante = almacenActualizado.estantes[almacenActualizado.estantes.length - 1];
-
-            console.log('Respuesta del crear estante:', newEstante); // Verificar el nuevo estante creado
-            console.log('Id del estante creado:', newEstante._id); // Verificar el ID del nuevo estante
-
             res.status(201).json({
                 mensaje: "Estante creado y asociado al almacén",
                 estante: newEstante,
                 almacenId: req.body.almacenId,
-                usuarioId: usuario._id
+                usuarioId: usuarioId
             });
         } catch (err) {
             res.status(500).json({ error: "Error al crear el estante", message: err.message });
@@ -90,20 +80,22 @@ class EstanteController{
             // Extraer todos los estantes de todos los almacenes
             let todosLosEstantes = []; //inicializar el array
             usuariosConEstantes.forEach(usuario => { //recorremos los usuarios que tienen almacenes
-                if(usuario.almacen && usuario.almacen.estantes && usuario.almacen.estantes.length > 0) { //validar si hay estantes en el almacén
-                    usuario.almacen.estantes.forEach(estante => { //recorremos los estantes del almacén
-                        todosLosEstantes.push({ // Agregar el estante al array
-                            _id: estante._id,
-                            nombre: estante.nombre,
-                            nombreDispositivo: estante.nombreDispositivo,
-                            ip: estante.ip,
-                            Timestamp: estante.Timestamp,
-                            almacenId: usuario.almacen._id,
-                            almacenName: usuario.almacen.nombre,
-                            dispositivos: estante.dispositivos || []
+                usuario.almacen.forEach(almacen => { //recorremos los almacenes de cada usuario
+                    if(almacen.estantes && almacen.estantes.length > 0) { //validar si hay estantes en el almacén
+                        almacen.estantes.forEach(estante => { //recorremos los estantes del almacén
+                            todosLosEstantes.push({ // Agregar el estante al array
+                                _id: estante._id,
+                                name: estante.name,
+                                nameDispositivo: estante.nameDispositivo,
+                                ip: estante.ip,
+                                Timestamp: estante.Timestamp,
+                                almacenId: almacen._id,
+                                almacenName: almacen.name,
+                                dispositivo: estante.dispositivo || []
+                            });
                         });
-                    });
-                }
+                    }
+                });
             });
 
             if(todosLosEstantes.length === 0){
