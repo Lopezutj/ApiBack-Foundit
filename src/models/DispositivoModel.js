@@ -6,7 +6,7 @@ const DispositivoSchema = new mongoose.Schema({
         type: Number,
         required: false,
     },
-    material: MaterialModel.schema, // Material embebido (singular, no array)
+    materiales: [MaterialModel.schema], // Array de materiales embebidos
 
 });
 
