@@ -122,26 +122,103 @@ class MaterialController{
 
     async updateMaterialById(req, res){
         try{
-            const materialId = await MaterialModel.findByIdAndUpdate(req.params.id, req.body, {new:true});
-            if(!materialId){
-                return res.status(404).json({error:"Material no encontrado"})
+
+            console.log('cuerpo de la solicitud', req.body);
+            //const materialId = await MaterialModel.findByIdAndUpdate(req.params.id, req.body, {new:true});
+
+            const usuario = req.usuario; //usuario loguedo
+            const materialId = req.params.id; // id del material obtenido del parametro
+            const { nombre, descripcion, cantidad, ubicacion, movimientos } = req.body; //filtrar cuerpo de la solicitud
+
+            //Buscamos el usuario que contiene ese material
+            const userDoc = await UserModel.findById(usuario._id);
+            if (!userDoc || !userDoc.almacen || userDoc.almacen.length === 0) {
+                return res.status(404).json({error: "No se encontró almacén para el usuario"});
             }
-            res.status(200).json({mensaje:"Material actualizado", material:materialId});
-        }
-        catch(err){
+
+            let materialActualizado = null; //variable para guardar el materiales
+
+            //recorremos estantes, dispositivos y materiales para encontrar y actualizar
+            userDoc.almacen[0].estantes.forEach(estante => {
+                estante.dispositivos.forEach(dispositivo => {
+                    dispositivo.materiales.forEach(material => {
+                        if (material._id.toString() === materialId) {
+                            // Actualizar los campos
+                            if (nombre) material.nombre = nombre;
+                            if (descripcion) material.descripcion = descripcion;
+                            if (cantidad) material.cantidad = cantidad;
+                            if (ubicacion) material.ubicacion = ubicacion;
+                            if (movimientos) material.movimientos = movimientos;
+                            material.Timestamp = new Date();
+                            materialActualizado = material;
+                        }
+                    });
+                });
+            });
+
+            console.log('Esto devuelve la consulta', materialActualizado);
+
+            if(!materialActualizado){
+                return res.status(404).json({error:"Material no encontrado"});
+            }
+
+            //Guardar el material actualizado en la base de datos
+            await userDoc.save();
+
+            res.status(200).json({mensaje:"Material actualizado", material:materialActualizado});
+
+        }catch(err){
             res.status(500).json({error:"Error al actualizar el material", message: err.mensaje})
         }  
     }//cierre de la funcion updateMaterialById
 
     async deleteMaterialById(req, res){
         try{
-            const deleteMaterialById = await MaterialModel.findByIdAndDelete(req.params.id);
-            if(!deleteMaterialById){
-                return res.status(404).json({error:"Material no encontrado"})
+            
+            const usuario = req.usuario; //usuario loguedo
+            const materialId = req.params.id; // id del material obtenido del parametro
+
+            //buscar usuario
+            const userDoc = await UserModel.findById(usuario._id);
+            if(!userDoc || !userDoc.almacen || userDoc.almacen.length === 0){
+                return res.status(404).json({error: "No se encontró almacén para el usuario"});
             }
-            res.status(200).json({mensaje:"Material eliminado", material:deleteMaterialById});
+
+            let materialEliminado = null;
+            let dispositivoEliminado = null;
+
+            userDoc.almacen[0].estantes.forEach(estante => {
+                // Usar for clásico para poder eliminar dispositivos si es necesario
+                for (let i = estante.dispositivos.length - 1; i >= 0; i--) {
+                    const dispositivo = estante.dispositivos[i];
+                    const index = dispositivo.materiales.findIndex(
+                        material => material._id.toString() === materialId
+                    );
+                    if (index !== -1) {
+                        materialEliminado = dispositivo.materiales[index];
+                        dispositivo.materiales.splice(index, 1); // Eliminar el material
+                        // Si el dispositivo queda sin materiales, eliminar el dispositivo (celda)
+                        if (dispositivo.materiales.length === 0) {
+                            dispositivoEliminado = estante.dispositivos[i];
+                            estante.dispositivos.splice(i, 1);
+                        }
+                    }
+                }
+            });
+
+        if(!materialEliminado){
+            return res.status(404).json({error:"Material no encontrado"});
         }
-        catch(err){
+
+        await userDoc.save();
+
+            res.status(200).json({ 
+                mensaje: "Material eliminado", 
+                material: materialEliminado,
+                dispositivoEliminado: dispositivoEliminado ? dispositivoEliminado : null
+            });
+
+        }catch(err){
             res.status(500).json({error:"Error al eliminar el material", message: err.mensaje})
         }
 
