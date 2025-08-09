@@ -18,6 +18,12 @@ const materialRoute = require('./routes/materialesRoute');
 const almacenRoute = require('./routes/almacenesRoute');
 const estanteRoute = require('./routes/estantesRoute');
 
+//Importar rutas de IoT
+const ledRoutes = require('./routes/IoT/led'); 
+const dhtRoutes = require('./routes/IoT/dht');
+const servoRoutes = require('./routes/IoT/servo');
+
+
 var app = express();
 
 // Middlewares de la aplicación de Express
@@ -40,6 +46,11 @@ app.use('/almacenes', almacenRoute); // Ruta para manejar almacenes
 app.use('/estantes', estanteRoute); // Ruta para manejar estantes
 app.use('/dispositivos', deviceRoute); // Ruta para manejar dispositivos //aun no usado pendiente
 app.use('/materiales', materialRoute); // Ruta para manejar materiales
+
+//confirurar rutas de IoT
+app.use('/led', ledRoutes); // Ruta para manejar LEDs
+app.use('/dht', dhtRoutes); // Ruta para manejar sensores DHT
+app.use('/servo', servoRoutes); // Ruta para manejar servos
 
 
 // Manejo de rutas no encontradas (404)
