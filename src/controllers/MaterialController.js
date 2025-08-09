@@ -65,7 +65,7 @@ class MaterialController{
         }
     }//cierre de creacion de material
 
-    //funcion GET para obtener todos los materiales
+    //funcion GET para obtener todos los materiales en la apk movil
     async getAllMateriales(req, res){
         try {
             const usuario = req.usuario;
@@ -102,19 +102,95 @@ class MaterialController{
         }
     }
 
+    //metodo para obtener todos los materiales en general de todos los documentos de los usuarios para la web
+    async AllMatariales(req,res){
+        try {
+            // Buscar todos los usuarios con al menos un almacén
+            const usuarios = await UserModel.find({ "almacen.0": { $exists: true } });
+            let materiales = [];
+
+            usuarios.forEach(usuario => {
+                usuario.almacen.forEach(almacen => {
+                    almacen.estantes.forEach(estante => {
+                        estante.dispositivos.forEach(dispositivo => {
+                            dispositivo.materiales.forEach(material => {
+                                materiales.push({
+                                    _id : material._id,
+                                    material: material.nombre,
+                                    descripcion: material.descripcion,
+                                    cantidad: material.cantidad,
+                                    ubicacion: material.ubicacion,
+                                    almacen: almacen.name,
+                                    estante: estante.nombre,
+                                    movimiento: material.movimientos,
+                                    timestamp: material.Timestamp
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+
+            if (materiales.length === 0) {
+                return res.status(404).json({ mensaje: "No hay materiales registrados" });
+            }
+
+            res.status(200).json({ mensaje: "Materiales encontrados", materiales });
+        } catch (err) {
+            res.status(500).json({ error: "Error al obtener los materiales", message: err.message });
+        }
+
+    }
+
 
     //funcion para encontrar material por nombre
     async getMaterialByNombre(req, res){
-        try{
-            const nombre = req.query.nombre;//obtener el nombre del material de los parametros de consulta
-            const materiales = await MaterialModel.find({nombre:nombre});//filtrar materiales por nombre
-            if(materiales.length === 0){
-                return res.status(404).json({error:"No se encontraron materiales con ese nombre"})
+        try {
+            // Aceptar /materiales/name/:name o ?nombre=...
+            const termRaw = req.params.nombre || req.params.name || req.query.nombre || req.query.name;
+            if (!termRaw) {
+                return res.status(400).json({ error: "Parámetro de búsqueda requerido (name|nombre)" });
             }
-            res.status(200).json({mensaje:"Materiales encontrados", materiales:materiales});
-        }
-        catch(err){
-            res.status(500).json({error:"Error al obtener los materiales", message: err.mensaje})
+            const term = String(termRaw).trim().toLowerCase();
+
+            const usuarios = await UserModel.find({ "almacen.0": { $exists: true } });
+            let materiales = [];
+
+            usuarios.forEach(usuario => {
+                if (!usuario.almacen) return;
+                usuario.almacen.forEach(almacen => {
+                    if (!almacen.estantes) return;
+                    almacen.estantes.forEach(estante => {
+                        if (!estante.dispositivos) return;
+                        estante.dispositivos.forEach(dispositivo => {
+                            if (!dispositivo.materiales) return;
+                            dispositivo.materiales.forEach(material => {
+                                const nombreMat = typeof material.nombre === 'string' ? material.nombre.toLowerCase() : '';
+                                if (nombreMat.includes(term)) {
+                                    materiales.push({
+                                        _id: material._id,
+                                        material: material.nombre,
+                                        descripcion: material.descripcion,
+                                        cantidad: material.cantidad,
+                                        ubicacion: material.ubicacion,
+                                        almacen: almacen.name,
+                                        estante: estante.nombre,
+                                        movimiento: material.movimientos,
+                                        timestamp: material.Timestamp
+                                    });
+                                }
+                            });
+                        });
+                    });
+                });
+            });
+
+            if (materiales.length === 0) {
+                return res.status(404).json({ error: "No se encontraron materiales con ese nombre" });
+            }
+            res.status(200).json({ mensaje: "Materiales encontrados", materiales });
+        } catch (err) {
+            res.status(500).json({ error: "Error al obtener los materiales", message: err.message });
         }
     }//cierre de la funcion getMaterialByNombre
 
