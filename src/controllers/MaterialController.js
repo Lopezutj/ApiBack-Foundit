@@ -23,13 +23,7 @@ class MaterialController{
                 return res.status(404).json({error: "No se encontró almacén o estante para el usuario"});
             }
             const dispositivos = userDoc.almacen[0].estantes[0].dispositivos || [];
-            /* // Validar duplicado de celda
-            const existeCelda = dispositivos.some(d => d.celda === celda);
-            if(existeCelda){
-                return res.status(409).json({error: "Ya existe un dispositivo con esa celda"});
-            } */
-            // Agregar el nuevo dispositivo
-            // Normalizar los materiales para asegurar que cada uno tenga el campo 'nombre'
+
             let materialesFormateados = Array.isArray(materiales) ? materiales : [materiales];
             materialesFormateados = materialesFormateados.map(mat => ({
                 nombre: mat.name || mat.nombre || '',
@@ -142,7 +136,6 @@ class MaterialController{
 
     }
 
-
     //funcion para encontrar material por nombre
     async getMaterialByNombre(req, res){
         try {
@@ -194,12 +187,10 @@ class MaterialController{
         }
     }//cierre de la funcion getMaterialByNombre
 
-
-
     async updateMaterialById(req, res){
         try{
 
-            console.log('cuerpo de la solicitud', req.body);
+            //console.log('cuerpo de la solicitud', req.body);
             //const materialId = await MaterialModel.findByIdAndUpdate(req.params.id, req.body, {new:true});
 
             const usuario = req.usuario; //usuario loguedo
@@ -232,7 +223,7 @@ class MaterialController{
                 });
             });
 
-            console.log('Esto devuelve la consulta', materialActualizado);
+            //console.log('Esto devuelve la consulta', materialActualizado);
 
             if(!materialActualizado){
                 return res.status(404).json({error:"Material no encontrado"});

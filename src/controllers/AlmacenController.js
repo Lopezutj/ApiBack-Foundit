@@ -10,9 +10,9 @@ class AlmacenController{
     async create(req,res){
 
         try{
-            console.log('Datos del cuerpo de la solicitud:', req.body);
+            //console.log('Datos del cuerpo de la solicitud:', req.body);
             const usuario = req.usuario;
-            console.log('Usuario autenticado:', usuario);
+            //console.log('Usuario autenticado:', usuario);
             const _id = usuario._id;
             // Verificar permisos
             if (usuario.tipo !== 'admin') {
@@ -33,13 +33,13 @@ class AlmacenController{
                 { $push: { almacen: req.body } },
                 { new: true }
             );
-            console.log('Resultado de findByIdAndUpdate:', updateUser);
+            //console.log('Resultado de findByIdAndUpdate:', updateUser);
             if (!updateUser) {
                 console.log('Usuario no encontrado al crear el almacén');
                 return res.status(404).json({ error: "Usuario no encontrado" });
             }
             const newAlmacen = updateUser.almacen[updateUser.almacen.length - 1];
-            console.log('Nuevo almacén agregado:', newAlmacen);
+            //console.log('Nuevo almacén agregado:', newAlmacen);
             res.status(201).json({
                 mensaje: "Almacen creado y asociado al usuario",
                 almacen: newAlmacen,
@@ -79,7 +79,7 @@ class AlmacenController{
                 return res.status(404).json({ error: "Usuario no encontrado" });
             }
 
-            console.log('Usuario encontrado:', usuarioEncontrado); // Verificar el usuario encontrado
+            //console.log('Usuario encontrado:', usuarioEncontrado); // Verificar el usuario encontrado
             
             //actualizar el usuario con el nuevo almacen
             const updateUser = await UserModel.findByIdAndUpdate(
@@ -148,7 +148,7 @@ class AlmacenController{
                 Timestamp: almacen.Timestamp,
                 estantes: almacen.estantes || []
             }));
-            console.log('Todos los almacenes:', almacenesNormalizados);
+            //console.log('Todos los almacenes:', almacenesNormalizados);
             res.status(200).json({
                 mensaje: "Almacenes encontrados",
                 almacenes: almacenesNormalizados,
@@ -168,7 +168,7 @@ class AlmacenController{
 
             let nombreAlmacen = req.params.name; // Obtener el nombre del almacén desde los parámetros de la solicitud
 
-            console.log('Nombre del almacén:', nombreAlmacen); // Verificar el nombre del almacén
+            //console.log('Nombre del almacén:', nombreAlmacen); // Verificar el nombre del almacén
 
             if(!nombreAlmacen){
                 return res.status(403).json({ error: "Falta el nombre del almacén" });
@@ -317,7 +317,7 @@ class AlmacenController{
                 { new: true }
             );
 
-            console.log('Resultado de eliminación:', resultado ? 'Almacén eliminado correctamente' : 'Error al eliminar'); 
+            //console.log('Resultado de eliminación:', resultado ? 'Almacén eliminado correctamente' : 'Error al eliminar'); 
             
             if (!resultado) {
                 return res.status(500).json({ error: "Error al eliminar el almacén" });
