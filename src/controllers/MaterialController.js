@@ -83,7 +83,12 @@ class MaterialController{
             almacen.estantes.forEach(estante => {
                 estante.dispositivos.forEach(dispositivo => {
                     if (Array.isArray(dispositivo.materiales)) {
-                        materiales = materiales.concat(dispositivo.materiales);
+                        materiales = materiales.concat(
+                            dispositivo.materiales.map(m => ({
+                                ...(typeof m.toObject === 'function' ? m.toObject() : m),
+                                celda: dispositivo.celda
+                            }))
+                        );
                     }
                 });
             });
@@ -116,6 +121,7 @@ class MaterialController{
                                     ubicacion: material.ubicacion,
                                     almacen: almacen.name,
                                     estante: estante.nombre,
+                                    celda: dispositivo.celda,
                                     movimiento: material.movimientos,
                                     timestamp: material.Timestamp
                                 });
@@ -128,6 +134,7 @@ class MaterialController{
             if (materiales.length === 0) {
                 return res.status(404).json({ mensaje: "No hay materiales registrados" });
             }
+            //console.log("Materiales encontrados:", materiales);
 
             res.status(200).json({ mensaje: "Materiales encontrados", materiales });
         } catch (err) {
@@ -159,7 +166,7 @@ class MaterialController{
                             if (!dispositivo.materiales) return;
                             dispositivo.materiales.forEach(material => {
                                 const nombreMat = typeof material.nombre === 'string' ? material.nombre.toLowerCase() : '';
-                                if (nombreMat.includes(term)) {
+                if (nombreMat.includes(term)) {
                                     materiales.push({
                                         _id: material._id,
                                         material: material.nombre,
@@ -168,6 +175,7 @@ class MaterialController{
                                         ubicacion: material.ubicacion,
                                         almacen: almacen.name,
                                         estante: estante.nombre,
+                                        celda: dispositivo.celda,
                                         movimiento: material.movimientos,
                                         timestamp: material.Timestamp
                                     });
@@ -195,7 +203,7 @@ class MaterialController{
 
             const usuario = req.usuario; //usuario loguedo
             const materialId = req.params.id; // id del material obtenido del parametro
-            const { nombre, descripcion, cantidad, ubicacion, movimientos } = req.body; //filtrar cuerpo de la solicitud
+            const { nombre, descripcion, cantidad, ubicacion, movimientos, celda } = req.body; //filtrar cuerpo de la solicitud
 
             //Buscamos el usuario que contiene ese material
             const userDoc = await UserModel.findById(usuario._id);
@@ -216,6 +224,13 @@ class MaterialController{
                             if (cantidad) material.cantidad = cantidad;
                             if (ubicacion) material.ubicacion = ubicacion;
                             if (movimientos) material.movimientos = movimientos;
+                            if (celda !== undefined && celda !== null && celda !== '') {
+                                // Convertir a número si es string numérica
+                                const nuevaCelda = typeof celda === 'string' ? Number(celda) : celda;
+                                if (!Number.isNaN(nuevaCelda)) {
+                                    dispositivo.celda = nuevaCelda;
+                                }
+                            }
                             material.Timestamp = new Date();
                             materialActualizado = material;
                         }
