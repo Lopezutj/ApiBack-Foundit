@@ -12,38 +12,43 @@ class LoginController {
     // Iniciar sesión
     async login(req,res){
         try {
-
             const {email,password} = req.body;
 
             if(!email || !password) { 
-                return res.status(404).json({ error: "Email y contraseña son requeridos" });
+                return res.status(400).json({ error: "Email y contraseña son requeridos" });
             }
-                
+            
             const user = await UserModel.findOne({ email: email }); // Buscar el usuario por email
-                if (!user) {
-                    return res.status(422).json({ error: "Usuario no encontrado" });
-                }
-             //verificar contraseña
-            const isvalidPassword = await bcrypt.compare(password, user.password); // Comparar la contraseña
-                if (!isvalidPassword) {
-                    return res.status(422).json({ error: "Contraseña y/o incorrecta" });
-                }
+            if (!user) {
+                return res.status(422).json({ error: "Usuario no encontrado" });
+            }
+
+            // Bloquear acceso si el usuario está inactivo
+            if (user.estado === false) {
+                console.log("Usuario inactivo. Contacte al administrador.");
+                return res.status(403).json({ error: "Usuario inactivo. Contacte al administrador." });
+            }
+
+            // Verificar contraseña
+            const isvalidPassword = await bcrypt.compare(password, user.password);
+            if (!isvalidPassword) {
+                return res.status(422).json({ error: "Contraseña y/o incorrecta" });
+            }
 
             res.status(200).json({ 
                 mensaje: "Inicio de sesión exitoso",
-                token: user.generarAuthToken(), // Generar el token de autenticación
+                token: user.generarAuthToken(),
                 user: {
                     id: user._id,
                     name: user.name,
                     email: user.email,
                     tipo: user.tipo,
+                    estado: user.estado,
                 }
             });
-    
-        }catch (err) {
-                res.status(400).json({ error: "Error al iniciar sesión", message: err.message });
+        } catch (err) {
+            res.status(400).json({ error: "Error al iniciar sesión", message: err.message });
         }
-    
     }
 
     // Validar token JWT
