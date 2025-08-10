@@ -69,7 +69,7 @@ class UserController {
             return res.status(401).json({ error: "Nombre de usuario no proporcionado" });
         }   
 
-        console.log("Nombre de usuario recibido:", req.params.name); // Verificar el nombre recibido
+        //console.log("Nombre de usuario recibido:", req.params.name); // Verificar el nombre recibido
 
         try {
             const user = await UserModel.findOne({name: req.params.name}); // Usar findById() de Mongoose
@@ -137,7 +137,7 @@ class UserController {
 
             const _id = req.params.id; // Desestructurar el ID del usuario de los parámetros de la solicitud
 
-            console.log("ID del usuario recibido:", _id); // Verificar el ID recibido
+            //console.log("ID del usuario recibido:", _id); // Verificar el ID recibido
             //validar si el del usuario existe 
             if(!_id) {
                 return res.status(404).json({ error: "ID de usuario no proporcionado" });
