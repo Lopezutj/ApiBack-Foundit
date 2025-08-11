@@ -49,11 +49,12 @@ class DispositivoController{
                 return res.status(404).json({ error: "Estante no encontrado" });
             }
 
-            // Agregar el dispositivo al estante específico
+            // Agregar el dispositivo al estante específico (AGREGAR EL LED AL ESTANTE)
             const updateDispositivo = await UserModel.findByIdAndUpdate(
                 usuario._id,
                 { $push: { "almacen.estantes.$[estante].dispositivos": {
                     celda: req.body.celda,
+                    led: false, // Estado inicial del LED apagado 
                     material: req.body.material
                 }}},
                 { 
@@ -138,6 +139,60 @@ class DispositivoController{
             res.status(500).json({error: "Error al eliminar el dispositivo", message: err.message});
         }
     }//cierre la función deleteDispositivoById
+
+    //funcion para obtener el estado del LED por celda
+    async getLedByCelda(req, res) {
+            const { celda } = req.params; 
+        try {
+            const usuario = await UserModel.findOne({ "almacen.estantes.dispositivos.celda": parseInt(celda) }); 
+            if (!usuario) {
+                return res.status(404).json({ error: "Celda no encontrada" });
+        }
+
+            const dispositivo = usuario.almacen.estantes 
+            .flatMap(est => est.dispositivos) // Aplanar el array de dispositivos
+            .find(d => d.celda === parseInt(celda)); // Buscar el dispositivo por celda
+
+            if (!dispositivo) {
+              return res.status(404).json({ error: "Dispositivo no encontrado en la celda" });
+          }
+
+            res.status(200).json({ celda, led: dispositivo.led }); 
+        } catch (err) {
+            res.status(500).json({ error: "Error al obtener el estado del LED", message: err.message });
+       }
+    }//cierre la función getLedByCelda
+
+    //funcion para actualizar el estado del LED por celda
+    async updateLedByCelda(req, res) {
+            const { celda } = req.params;
+            const { led } = req.body;
+
+            if (led === undefined) {
+                return res.status(400).json({ error: "Falta el estado del LED" });
+        }  
+
+        try {
+            const usuarioActualizado = await UserModel.findOneAndUpdate( 
+            { "almacen.estantes.dispositivos.celda": parseInt(celda) }, 
+        {$set: {"almacen.estantes.$[].dispositivos.$[disp].led": led}},    
+        
+        {
+        arrayFilters: [{ "disp.celda": parseInt(celda) }], // Filtrar los dispositivos por celda
+        new: true
+        });
+
+            if (!usuarioActualizado) { 
+                return res.status(404).json({ error: "Celda no encontrada" });
+           }
+
+           res.status(200).json({ mensaje: `LED actualizado en celda ${celda}`, led });
+        } 
+        catch (err) {
+           res.status(500).json({ error: "Error al actualizar el LED", message: err.message });
+           }
+    }//cierre la función updateLedByCelda
+
 
 }//cierre la clase DispositivoController
 

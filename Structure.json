@@ -17,6 +17,7 @@
                     "Dispositivo": [
                         {
                             "celda": 1,
+                            "led": true,
                             "material": {
                                 "nombre": "Material 1",
                                 "descripcion": "Descripcion 1",
