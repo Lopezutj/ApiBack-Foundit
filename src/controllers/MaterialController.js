@@ -8,7 +8,7 @@ class MaterialController{
     async create(req,res){
         let usuario = req.usuario;
         console.log('cuerpo de la solicitud:', req.body);
-        
+
         // Validar usuario
         if(!usuario || !usuario._id){
             return res.status(401).json({error: "Usuario no autenticado o no existe"});
@@ -136,7 +136,7 @@ class MaterialController{
             if (materiales.length === 0) {
                 return res.status(404).json({ mensaje: "No hay materiales registrados" });
             }
-            //console.log("Materiales encontrados:", materiales);
+            console.log("Materiales encontrados:", materiales);
 
             res.status(200).json({ mensaje: "Materiales encontrados", materiales });
         } catch (err) {
@@ -200,7 +200,7 @@ class MaterialController{
     async updateMaterialById(req, res){
         try{
 
-            //console.log('cuerpo de la solicitud', req.body);
+            console.log('cuerpo de la solicitud', req.body);
             //const materialId = await MaterialModel.findByIdAndUpdate(req.params.id, req.body, {new:true});
 
             const usuario = req.usuario; //usuario loguedo
@@ -226,7 +226,16 @@ class MaterialController{
                             if (cantidad) material.cantidad = cantidad;
                             if (ubicacion) material.ubicacion = ubicacion;
                             //if (movimientos) material.movimientos = movimientos;
-                            if(movimientos) material.movimientos.push(...movimientos); // se agregan nuevos movimientos     
+                            if (movimientos !== undefined) {
+                                if (!Array.isArray(material.movimientos)) {
+                                    material.movimientos = []; // Inicializar como array si no lo es
+                                }
+                                if (Array.isArray(movimientos)) {
+                                    material.movimientos.push(...movimientos); // Agregar nuevos movimientos
+                                } else {// si es un solo movimiento
+                                    material.movimientos.push(movimientos); // Agregar movimiento único
+                                }
+                            }
                             if (celda !== undefined && celda !== null && celda !== '') {
                                 // Convertir a número si es string numérica
                                 const nuevaCelda = typeof celda === 'string' ? Number(celda) : celda;
