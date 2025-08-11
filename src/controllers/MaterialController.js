@@ -7,6 +7,8 @@ class MaterialController{
     //funcion POST para crear material
     async create(req,res){
         let usuario = req.usuario;
+        console.log('cuerpo de la solicitud:', req.body);
+        
         // Validar usuario
         if(!usuario || !usuario._id){
             return res.status(401).json({error: "Usuario no autenticado o no existe"});
@@ -223,7 +225,8 @@ class MaterialController{
                             if (descripcion) material.descripcion = descripcion;
                             if (cantidad) material.cantidad = cantidad;
                             if (ubicacion) material.ubicacion = ubicacion;
-                            if (movimientos) material.movimientos = movimientos;
+                            //if (movimientos) material.movimientos = movimientos;
+                            if(movimientos) material.movimientos.push(...movimientos); // se agregan nuevos movimientos     
                             if (celda !== undefined && celda !== null && celda !== '') {
                                 // Convertir a número si es string numérica
                                 const nuevaCelda = typeof celda === 'string' ? Number(celda) : celda;
