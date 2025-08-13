@@ -136,7 +136,7 @@ class MaterialController{
             if (materiales.length === 0) {
                 return res.status(404).json({ mensaje: "No hay materiales registrados" });
             }
-            console.log("Materiales encontrados:", materiales);
+            //console.log("Materiales encontrados:", materiales);
 
             res.status(200).json({ mensaje: "Materiales encontrados", materiales });
         } catch (err) {

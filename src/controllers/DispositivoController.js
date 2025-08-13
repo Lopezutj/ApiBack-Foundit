@@ -1,6 +1,5 @@
-const DispositivoModel = require('../models/DispositivoModel');
-const MaterialModel = require('../models/MaterialModel');
 const UserModel = require('../models/UserModel');
+const DispositivoModel = require('../models/DispositivoModel'); // Importar el modelo de Dispositivo
 
 //controlador de Dispositivo
 class DispositivoController{
@@ -86,58 +85,126 @@ class DispositivoController{
 
     }//cierre la función create
 
-    //funcion del tipo GET para obtener un dispositivo por ID
-    async getDispositivoById(req,res){
-        try{
-            const dispositivoId = await DispositivoModel.findById(req.params.id);
-            if(!dispositivoId){
-                return res.status(404).json({error: "Dispositivo no encontrado"});
-            }
-            res.status(200).json({mensaje: "Dispositivo encontrado", dispositivo: dispositivoId});
-        }
-        catch(err){
-            res.status(500).json({error: "Error al obtener el dispositivo", message: err.message});
-        }
-    }//cierre la función getDispositivoById
+    // Endpoints para el ESP32
+    
+    // POST /api/dht
+// Recibe los datos de temperatura y humedad del ESP32 y los guarda en la BD, copiando el estado actual de LED y servo
+async receiveDHT(req, res) {
+    const { temperature, humidity } = req.body;
+    try {
+        // Encuentra el último registro para copiar led y servo
+        const last = await DispositivoModel.findOne().sort({ timestamp: -1 });
+        const lastLed = last ? last.led : { ledId: -1, state: 'off' };
+        const lastServo = last ? last.servo : { position: 0 };
 
-    //funcion para obtener todos los dispositivos
-    async getAllDispositivos(req,res){
-        try{
-            const dispositivos = await DispositivoModel.find();
-            res.status(200).json({mensaje: "Dispositivos encontrados", dispositivos: dispositivos});
-        }
-        catch(err){
-            res.status(500).json({error: "Error al obtener los dispositivos", message: err.message});
-        }
-    }//cierre la función getAllDispositivos
+        // Crea un nuevo registro con los datos DHT y copia led/servo
+        await DispositivoModel.create({
+            temperature,
+            humidity,
+            led: lastLed,
+            servo: lastServo
+        });
 
-    //funcion para actualizar un dispositivo por ID
-    async updateDispositivoById(req,res){
-        try{
-            const dispositivoId = await DispositivoModel.findByIdAndUpdate(req.params.id, req.body, {new: true});
-            if(!dispositivoId){
-                return res.status(404).json({error: "Dispositivo no encontrado"});
-            }
-            res.status(200).json({mensaje: "Dispositivo actualizado", dispositivo: dispositivoId});
-        }
-        catch(err){
-            res.status(500).json({error: "Error al actualizar el dispositivo", message: err.message});
-        }
-    }//cierre la función updateDispositivoById
+        console.log(`Datos DHT recibidos: Temp=${temperature}, Hum=${humidity}`);
+        res.status(200).json({ status: 'ok', message: 'DHT data received' });
+    } catch (error) {
+        console.error('Error al guardar datos DHT:', error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
 
-    //funcion para eliminar un dispositivo por ID
-    async deleteDispositivoById(req,res){
-        try{
-            const dispositivoId = await DispositivoModel.findByIdAndDelete(req.params.id);
-            if(!dispositivoId){
-                return res.status(404).json({error: "Dispositivo no encontrado"});
-            }
-            res.status(200).json({mensaje: "Dispositivo eliminado", dispositivo: dispositivoId});
+// GET /api/dht
+// Envía solo los últimos datos de temperatura y humedad al frontend
+async getLatestDHT(req, res) {
+    try {
+        const latestData = await DispositivoModel.findOne().sort({ timestamp: -1 });
+        if (latestData) {
+            res.status(200).json({
+                temperature: latestData.temperature,
+                humidity: latestData.humidity
+            });
+        } else {
+            res.status(200).json({ temperature: null, humidity: null });
         }
-        catch(err){
-            res.status(500).json({error: "Error al eliminar el dispositivo", message: err.message});
+    } catch (error) {
+        console.error('Error al obtener últimos datos DHT:', error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
+// POST /api/led/control
+// Recibe un comando del frontend para controlar el LED y lo guarda en la BD
+async controlLed(req, res) {
+    const { ledId, state } = req.body;
+    try {
+        const latestData = await DispositivoModel.findOne().sort({ timestamp: -1 });
+        if (latestData) {
+            latestData.led = { ledId, state };
+            await latestData.save();
+            console.log(`Comando para LED recibido: ledId=${ledId}, state=${state}`);
+            res.status(200).json({ status: 'ok', message: 'Led command received' });
+        } else {
+            await DispositivoModel.create({ led: { ledId, state } });
+            res.status(200).json({ status: 'ok', message: 'Led command received' });
         }
-    }//cierre la función deleteDispositivoById
+    } catch (error) {
+        console.error('Error al guardar comando de LED:', error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
+// GET /api/led/status
+// Envía el estado del LED al ESP32
+async getLedStatus(req, res) {
+    try {
+        const latestData = await DispositivoModel.findOne().sort({ timestamp: -1 });
+        if (latestData && latestData.led) {
+            res.status(200).json(latestData.led);
+        } else {
+            res.status(200).json({ ledId: -1, state: 'off' });
+        }
+    } catch (error) {
+        console.error('Error al obtener estado de LED:', error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
+// POST /api/servo/control
+// Recibe un comando del frontend para controlar el servo y lo guarda en la BD
+async controlServo(req, res) {
+    const { position } = req.body;
+    try {
+        const latestData = await DispositivoModel.findOne().sort({ timestamp: -1 });
+        if (latestData) {
+            latestData.servo = { position };
+            await latestData.save();
+            console.log(`Comando para Servo recibido: position=${position}`);
+            res.status(200).json({ status: 'ok', message: 'Servo command received' });
+        } else {
+            await DispositivoModel.create({ servo: { position } });
+            res.status(200).json({ status: 'ok', message: 'Servo command received' });
+        }
+    } catch (error) {
+        console.error('Error al guardar comando de servo:', error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
+// GET /api/servo/status
+// Envía la posición del servo al ESP32
+async getServoStatus(req, res) {
+    try {
+        const latestData = await DispositivoModel.findOne().sort({ timestamp: -1 });
+        if (latestData && latestData.servo) {
+            res.status(200).json(latestData.servo);
+        } else {
+            res.status(200).json({ position: 0 });
+        }
+    } catch (error) {
+        console.error('Error al obtener posición del servo:', error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
 
 }//cierre la clase DispositivoController
 
