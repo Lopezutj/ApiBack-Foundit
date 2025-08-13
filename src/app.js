@@ -38,7 +38,7 @@ app.use('/login', authRoute); // Ruta para autenticación y
 app.use('/users', userRoute); // Ruta para manejar usuarios
 app.use('/almacenes', almacenRoute); // Ruta para manejar almacenes
 app.use('/estantes', estanteRoute); // Ruta para manejar estantes
-app.use('/dispositivos', deviceRoute); // Ruta para manejar dispositivos //aun no usado pendiente
+app.use('/', deviceRoute); // Ruta para manejar dispositivos //USO EXCLUSIVO PARA IOT
 app.use('/materiales', materialRoute); // Ruta para manejar materiales
 
 

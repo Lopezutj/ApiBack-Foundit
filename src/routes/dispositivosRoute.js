@@ -5,9 +5,21 @@ const autentificaJWT = require('../../middleware/auntentificaJWT'); // Middlewar
 
 // Rutas para el controlador de Dispositivo
 router.post('/', autentificaJWT ,DispositivoController.create); // Crear un nuevo material en un estante del dispositivo 
-router.get('/:id', DispositivoController.getDispositivoById); // Obtener un dispositivo por ID
-router.get('/', DispositivoController.getAllDispositivos); // Obtener todos los dispositivos
-router.put('/:id', DispositivoController.updateDispositivoById); // Actualizar un dispositivo por ID
-router.delete('/:id', DispositivoController.deleteDispositivoById); // Eliminar un dispositivo por ID
+
+// Endpoints para el ESP32
+// El ESP32 envía datos de temperatura y humedad por POST
+router.post('/api/dht', DispositivoController.receiveDHT); // ESP32 → Node.js (guarda datos DHT)
+// El ESP32 consulta el estado actual del LED por GET
+router.get('/api/led/status', DispositivoController.getLedStatus); // ESP32 ← Node.js (lee estado LED)
+// El ESP32 consulta la posición actual del servo por GET
+router.get('/api/servo/status', DispositivoController.getServoStatus); // ESP32 ← Node.js (lee posición servo)
+
+// Endpoints para el frontend (Laravel)
+// El dashboard web envía comandos para controlar el LED por POST
+router.post('/api/led/control', DispositivoController.controlLed); // Web → Node.js (cambia estado LED)
+// El dashboard web envía comandos para controlar el servo por POST
+router.post('/api/servo/control', DispositivoController.controlServo); // Web → Node.js (cambia posición servo)
+// El dashboard web consulta los últimos datos de temperatura y humedad por GET
+router.get('/api/dht', DispositivoController.getLatestDHT); // Web ← Node.js (lee datos DHT)
 
 module.exports = router; // Exportar el enrutador para usarlo en otros archivos

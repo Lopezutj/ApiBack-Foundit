@@ -6,6 +6,25 @@ const DispositivoSchema = new mongoose.Schema({
         type: Number,
         required: false,
     },
+    temperature: {
+        type: Number,
+        required: false
+    },
+    humidity: {
+        type: Number,
+        required: false
+    },
+    led: {
+        ledId: { type: Number, default: -1 },
+        state: { type: String, default: 'off' }
+    },
+    servo: {
+        position: { type: Number, default: 0 }
+    },
+    timestamp: {
+        type: Date,
+        default: Date.now
+    },
     materiales: [MaterialModel.schema], // Array de materiales embebidos
 
 });
