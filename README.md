@@ -9,7 +9,7 @@ Una API RESTful construida con Node.js y Express que facilita la comunicación e
 
 - 🟩 **Node.js**
 - ⚙️ **Express.js**
-- 🍃 **MongoDB**
+- � **MongoDB**
 - 🔐 **JWT para autenticación**
 
 ---
@@ -33,251 +33,124 @@ cp .env.example .env
 npm run dev / npm start
 ```
 
+### Dependencias
+
+Instala las dependencias principales del proyecto (npm install ya las instalará desde package.json, pero aquí están explícitas):
+
+```powershell
+# Instalar dependencias de producción
+npm install express cors mongoose jsonwebtoken dotenv morgan ejs cookie-parser http-errors debug body-parser mongodb bcrypt bcryptjs
+
+# Herramientas de desarrollo
+npm install -D nodemon
+```
+
+Sugerencia de scripts en package.json (opcional):
+
+```json
+{
+	"scripts": {
+		"start": "node ./bin/www",
+		"dev": "nodemon ./bin/www"
+	}
+}
+```
+
+### Requisitos
+
+- Node.js ≥ 16.20 (recomendado 18 LTS o superior)
+- npm ≥ 9 (o pnpm/yarn si prefieres)
+
+Puedes verificar tus versiones con:
+
+```powershell
+node -v
+npm -v
+```
+
+### Archivo .env de ejemplo
+
+Crea un archivo `.env` en la raíz del proyecto con al menos estas variables:
+
+```env
+# Puerto de la app Express
+PORT=3000
+
+# Conexión a MongoDB (elige uno de los dos ejemplos)
+# Local
+MONGO_URI=mongodb://127.0.0.1:27017/foundit
+# Atlas (remoto)
+# MONGO_URI=mongodb+srv://<usuario>:<password>@<cluster>/<db>?retryWrites=true&w=majority
+
+# Clave para firmar/verificar tokens JWT
+JWT_SECRET=un_super_secreto_largo_y_aleatorio
+```
+
 ---
 
-## 📚 Endpoints de la API
+## 📚 Endpoints URL
 
-A continuación se muestran los endpoints disponibles y ejemplos de cómo interactuar con ellos:
+Lista rápida de endpoints solicitados y los adicionales disponibles según las rutas del proyecto.
 
 ### 🔐 Autenticación
 
-**POST** `http://98.71.33.93:3000/login`
-
-**Descripción:** Para loguear un usuario.
-
-**Permisos:** Todos los usuarios.
-
-**Ejemplo de uso:**
-
-```http
-POST http://98.71.33.93:3000/login
-Content-Type: application/json
-
-{
-    "email": "example@correo.com",
-    "password": "123456"
-}
-```
-
----
-
-### 👤 Gestión de Usuarios
-
-**POST** `http://98.71.33.93:3000/users`
-
-**Descripción:** Crea nuevos usuarios.
-
-**Permisos:** Solo usuarios tipo admin.
-
-**Ejemplo de uso:**
-
-```http
-POST http://98.71.33.93:3000/users
-Content-Type: application/json
-Authorization: Bearer <token>
-
-{
-    "name": "test",
-    "apellido": "Demo",
-    "email": "example@correo.com",
-    "password": "123456",
-    "tipo": "admin"
-}
-```
-
-**GET** `http://98.71.33.93:3000/users`
-
-**Descripción:** Obtiene todos los usuarios registrados.
-
-**Permisos:** Solo usuarios tipo admin.
-
-**GET** `http://98.71.33.93:3000/users/name/:name`
-
-**Descripción:** Obtiene usuarios por nombre.
-
-**Permisos:** Solo usuarios tipo admin.
-
-**PUT** `http://98.71.33.93:3000/users/id/:id`
-
-**Descripción:** Actualiza la información de un usuario.
-
-**Permisos:** Solo usuarios tipo admin.
-
-**DELETE** `http://98.71.33.93:3000/users/id/:id`
-
-**Descripción:** Elimina un usuario.
-
-**Permisos:** Solo usuarios tipo admin.
-
----
-
-### 🏢 Gestión de Almacenes
-
-**POST** `http://98.71.33.93:3000/almacenes`
-
-**Descripción:** Crea un nuevo almacén.
-
-**Permisos:** Solo usuarios tipo admin.
-
-**Ejemplo de uso:**
-
-```http
-POST http://98.71.33.93:3000/almacenes
-Content-Type: application/json
-Authorization: Bearer <token>
-
-{
-    "name": "Almacén Central",
-    "direccion": "Av. José María Morelos #123, Col. Centro"
-}
-```
-
-**PUT** `http://98.71.33.93:3000/almacenes/id`
-
-**Descripción:** Agrega un almacén a un usuario creado.
-
-**Permisos:** Solo usuarios tipo admin.
-
-**GET** `http://98.71.33.93:3000/almacenes/all`
-
-**Descripción:** Obtiene todos los almacenes.
-
-**Permisos:** Todos los usuarios.
-
-**GET** `http://98.71.33.93:3000/almacenes/id/:id`
-
-**Descripción:** Obtiene un almacén por su ID.
-
-**Permisos:** Todos los usuarios.
-
-**GET** `http://98.71.33.93:3000/almacenes/name/:name`
-
-**Descripción:** Obtiene almacenes por nombre.
-
-**Permisos:** Todos los usuarios.
-
-**PUT** `http://98.71.33.93:3000/almacenes/id/:id`
-
-**Descripción:** Actualiza la información de un almacén por su ID.
-
-**Permisos:** Solo usuarios tipo admin.
-
-**DELETE** `http://98.71.33.93:3000/almacenes/:id`
-
-**Descripción:** Elimina un almacén por su ID.
-
-**Permisos:** Solo usuarios tipo admin.
-
----
-
-### 🗄️ Gestión de Estantes
-
-**POST** `http://98.71.33.93:3000/estantes`
-
-**Descripción:** Crea estantes dentro de los almacenes.
-
-**Permisos:** Solo usuarios tipo admin.
-
-**Ejemplo de uso:**
-
-```http
-POST http://98.71.33.93:3000/estantes
-Content-Type: application/json
-Authorization: Bearer <token>
-
-{
-    "name": "Estante A1",
-    "nameDispositivo": "ESP32 De roberto",
-    "ip": "192.168.45.1",
-    "almacenId": "60d5ec49f1a2c8001c8e4b00"
-}
-```
-
-**GET** `http://98.71.33.93:3000/estantes/all`
-
-**Descripción:** Obtiene todos los estantes de todos los almacenes.
-
-**Permisos:** Todos los usuarios.
-
-**PUT** `http://98.71.33.93:3000/estantes/id/:id`
-
-**Descripción:** Actualiza la información de un estante por su ID.
-
-**Permisos:** Solo usuarios tipo admin.
-
-**DELETE** `http://98.71.33.93:3000/estantes/:id`
-
-**Descripción:** Elimina un estante por su ID.
-
-**Permisos:** Solo usuarios tipo admin.
-
----
-
-### 📦 Gestión de Materiales
-
-**POST** `http://98.71.33.93:3000/materiales`
-
-**Descripción:** Agrega materiales a un estante específico.
-
-**Permisos:** Todos los usuarios.
-
-**Ejemplo de uso:**
-
-```http
-POST http://98.71.33.93:3000/materiales
-Content-Type: application/json
-Authorization: Bearer <token>
-
-{
-    "celda": 1,
-    "materiales": {
-        "name": "Tornillos M6",
-        "description": "Tornillos de acero inoxidable",
-        "cantidad": 50,
-        "ubicacion": "Pasillo A-3",
-        "movimientos": ["entrada"]
-    }
-}
-```
-
-**GET** `http://98.71.33.93:3000/materiales/all`
-
-**Descripción:** Obtiene todos los materiales.
-
-**Permisos:** Todos los usuarios.
-
-**GET** `http://98.71.33.93:3000/materiales/name/:name`
-
-**Descripción:** Busca materiales por nombre.
-
-**Permisos:** Todos los usuarios.
-
-**Ejemplo de uso:**
-
-```http
-GET http://98.71.33.93:3000/materiales/name/martillo
-Authorization: Bearer <token>
-```
-
-**PUT** `http://98.71.33.93:3000/materiales/id/:id`
-
-**Descripción:** Actualiza la información de un material.
-
-**Permisos:** Todos los usuarios.
-
-**DELETE** `http://98.71.33.93:3000/materiales/:id`
-
-**Descripción:** Elimina un material.
-
-**Permisos:** Solo usuarios tipo admin.
+- POST http://98.71.33.93:3000/login — Para loguear un usuario
+
+### 👤 Usuarios (solo ADMIN)
+
+- POST http://98.71.33.93:3000/users — Crear usuarios
+- GET http://98.71.33.93:3000/users — Obtiene usuarios registrados
+- GET http://98.71.33.93:3000/users/name/:name — Obtiene usuarios por nombre
+- GET http://98.71.33.93:3000/users/id/:id — Obtiene usuario por ID
+- PUT http://98.71.33.93:3000/users/id/:id — Actualiza usuarios
+- DELETE http://98.71.33.93:3000/users/:id — Elimina usuarios (ruta real en código)
+
+### 🏢 Almacenes
+
+- POST http://98.71.33.93:3000/almacenes — Crea un nuevo almacén (solo admin; toma el id del token logueado)
+- PUT http://98.71.33.93:3000/almacenes/:id — Agrega un almacén al usuario por ID (ruta real en código)
+- GET http://98.71.33.93:3000/almacenes/all — Obtiene todos los almacenes (todos)
+- GET http://98.71.33.93:3000/almacenes/name/:name — Obtiene almacenes por nombre
+- PUT http://98.71.33.93:3000/almacenes/id/:id — Actualiza almacenes por ID (solo admin)
+- DELETE http://98.71.33.93:3000/almacenes/id/:id — Elimina almacenes por ID (solo admin)
+
+### 🗄️ Estantes
+
+- POST http://98.71.33.93:3000/estantes/:id — Crea estantes en almacenes por ID del usuario operador (solo admin)
+- GET http://98.71.33.93:3000/estantes/all — Obtiene los estantes de los almacenes (todos)
+
+### 📦 Materiales
+
+- POST http://98.71.33.93:3000/materiales — Agrega los materiales al estante (todos)
+- GET http://98.71.33.93:3000/materiales/all — Obtiene todos los materiales
+- GET http://98.71.33.93:3000/materiales/allWEB — Obtiene todos los materiales (vista web)
+- GET http://98.71.33.93:3000/materiales/name/:name — Busca materiales por nombre
+- PUT http://98.71.33.93:3000/materiales/:id — Actualiza un material por ID
+- DELETE http://98.71.33.93:3000/materiales/:id — Elimina un material
+
+### 🧠 Dispositivos / IoT (ESP32 y Panel Web)
+
+Montadas en raíz según `src/app.js` (app.use('/', deviceRoute)).
+
+- POST http://98.71.33.93:3000/api/dht — ESP32 → Node.js (envía y guarda datos de temperatura/humedad)
+- GET  http://98.71.33.93:3000/api/led/status — ESP32/Web ← Node.js (lee estado actual del LED)
+- GET  http://98.71.33.93:3000/api/servo/status — ESP32/Web ← Node.js (lee posición actual del servo)
+- POST http://98.71.33.93:3000/api/led/control — Web → Node.js (cambia estado del LED)
+- POST http://98.71.33.93:3000/api/servo/control — Web → Node.js (cambia posición del servo)
+- GET  http://98.71.33.93:3000/api/dht — Web ← Node.js (consulta últimos datos DHT)
+- POST http://98.71.33.93:3000/ — Crear dispositivo/material en estante (requiere token; según DispositivoController.create)
+
+Notas:
+- En el código actual, la ruta para eliminar usuarios es `DELETE /users/:id` (no `/users/id/:id`).
+- Algunas rutas de almacenes usan `/:id` directamente; se documenta arriba la ruta real.
 
 ---
 
 ## 🔧 Notas importantes
 
-- **Autenticación:** Todos los endpoints (excepto login) requieren un token JWT válido en el header `Authorization: Bearer <token>`.
-- **Permisos:** Los usuarios tipo `admin` tienen acceso completo, mientras que los `operadores` tienen acceso limitado.
-- **Estructura de datos:** Los almacenes, estantes y materiales están organizados de forma jerárquica y embebida en los documentos de usuario.
+- Autenticación: excepto login, añade `Authorization: Bearer <token>`.
+- Permisos: `admin` acceso completo; `operador` acceso limitado.
+- Estructura: almacenes, estantes, dispositivos y materiales anidados en el documento de usuario.
 
 ---
 
@@ -290,3 +163,9 @@ Authorization: Bearer <token>
 ✅ CRUD de Materiales  
 ✅ Validaciones de permisos  
 ✅ Manejo de errores
+
+## Licencia
+Todos los derechos reservados
+
+## ❓Autores
+Proyecto Desarrollado Con Fines Educativos En La "UTJ" Universidad Tecnologica de Jalisco (Team) SIXTH MIND
